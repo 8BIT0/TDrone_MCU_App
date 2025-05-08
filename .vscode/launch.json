@@ -1,0 +1,44 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "cwd": "${workspaceRoot}",
+            "executable": "./build/TDrone.elf",
+            "interface": "swd",
+            "name": "OCD debug",
+            "request": "launch",
+            "type": "cortex-debug",
+            "servertype": "openocd",
+            "configFiles": [
+                "interface/stlink-v2.cfg",
+                "target/stm32h7x.cfg"
+            ],
+            //"svdFile": "/Users/mac/Desktop/Stm32/tool/cmsis-svd/data/STMicro/STM32F405.svd"
+        },
+        {
+            "cwd": "${workspaceRoot}",
+            "executable": "./build/TDrone.elf",
+            "interface": "swd",
+            "name": "AT32 OCD debug",
+            "request": "launch",
+            "type": "cortex-debug",
+            "servertype": "openocd",
+            "configFiles": [
+                "interface/stlink.cfg",
+                "target/at32f435xG.cfg"
+            ],
+            "svdFile": "./HW_Lib/AT32F435/svd/AT32F435xx_V2.svd"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Analysis_Tool Debug",
+            "program": "${workspaceFolder}/Analysis_Tool/Log2Txt/build/log2txt",
+            "args": [],
+            "cwd": "${workspaceFolder}/Analysis_Tool/Log2Txt/build"
+        }
+    ]
+}

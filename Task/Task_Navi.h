@@ -1,0 +1,30 @@
+#ifndef __TASK_NAVI_H
+#define __TASK_NAVI_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include <stdint.h>
+#include <stdbool.h>
+#include <string.h>
+#include "pos_data.h"
+
+typedef struct
+{
+    float att_pitch;
+    float att_roll;
+    float att_yaw;
+    float att_heading;
+    
+    uint16_t period;
+}TaskNavi_Monitor_TypeDef;
+
+void TaskNavi_Init(uint32_t period);
+void TaskNavi_Core(void const *arg);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif
