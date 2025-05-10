@@ -56,6 +56,8 @@ Task/Task_Control.c \
 Device/Dev_Led.c \
 Device/Dev_W25Qxx.c \
 Device/Dev_CRSF.c \
+Device/Dev_ICM426xx.c \
+Device/Dev_BMP280.c \
 Service/Srv_Receiver.c \
 Service/Srv_Actuator.c \
 Service/Srv_ComProto.c \
