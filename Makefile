@@ -53,7 +53,6 @@ debug/trace_analysiser.c \
 Task/Task_Telemetry.c \
 Task/Task_Protocol.c \
 Task/Task_Control.c \
-Task/Task_BlackBox.c \
 Device/Dev_Led.c \
 Device/Dev_W25Qxx.c \
 Device/Dev_CRSF.c \
@@ -144,6 +143,7 @@ HW_Lib/STM32H7/HAL_Lib/STM32H7xx_HAL_Driver/Src/stm32h7xx_ll_fmc.c \
 HW_Lib/STM32H7/HAL_Lib/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_sdram.c \
 HW_Lib/STM32H7/HAL_Lib/STM32H7xx_HAL_Driver/Src/stm32h7xx_ll_usb.c \
 HW_Lib/STM32H7/PinPort_Def/Neure/HW_Def.c
+# Task/Task_BlackBox.c \
 
 # ASM sources
 ASM_SOURCES =  \

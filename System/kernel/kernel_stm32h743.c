@@ -4,13 +4,16 @@
  * for stm32 some assemble and regsiter are in common
  */
 
-#include "kernel_stm32xxx.h"
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 #include "../../FCHW_Config.h"
-#include "stm32h7xx_hal_rcc.h"
-#include "stm32h7xx_hal_pwr.h"
+#include "stm32h743xx.h"
 #include "stm32h7xx_hal.h"
-#include "stm32h7xx_hal_tim.h"
-#include "cmsis_os.h"
+#include "stm32h7xx_hal_pwr.h"
+
 
 TIM_HandleTypeDef htim17;
 TIM_HandleTypeDef htim16;
@@ -23,7 +26,7 @@ void Kernel_MPU_Config(void);
 
 bool Kernel_Init(void)
 {
- 	__enable_irq();
+	__enable_irq();
 
     Kernel_MPU_Config();
     SCB_EnableICache();
@@ -234,18 +237,17 @@ bool Kernel_Set_SysTimer_TickUnit(uint32_t unit)
 
 void Kernel_BaseTick_DeInit(void)
 {
-    __HAL_RCC_SYSCFG_CLK_DISABLE();
-
     HAL_TIM_Base_Stop_IT(&htim16);
     HAL_TIM_Base_Stop_IT(&htim17);
 
 	HAL_TIM_Base_DeInit(&htim16);
 	HAL_TIM_Base_DeInit(&htim17);
+	HAL_NVIC_DisableIRQ(PendSV_IRQn);
 }
 
 void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* htim_base)
 {
-	if(htim_base->Instance == TIM16)
+	if (htim_base->Instance == TIM16)
 	{
 		/* Peripheral clock enable */
 		__HAL_RCC_TIM16_CLK_ENABLE();
@@ -254,7 +256,7 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* htim_base)
 		HAL_NVIC_SetPriority(TIM16_IRQn, 14, 0);
 		HAL_NVIC_EnableIRQ(TIM16_IRQn);
 	}
-	else if(htim_base->Instance == TIM17)
+	else if (htim_base->Instance == TIM17)
 	{
 		/* Peripheral clock enable */
 		__HAL_RCC_TIM17_CLK_ENABLE();

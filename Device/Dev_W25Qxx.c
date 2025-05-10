@@ -10,7 +10,7 @@ static DevW25Qxx_Error_List DevW25Qxx_WriteSector(DevW25QxxObj_TypeDef *dev, uin
 static DevW25Qxx_Error_List DevW25Qxx_ReadSector(DevW25QxxObj_TypeDef *dev, uint32_t ReadAddr, uint8_t *pData, uint32_t Size);
 static DevW25Qxx_Error_List DevW25Qxx_EraseSector(DevW25QxxObj_TypeDef *dev, uint32_t Address);
 static DevW25Qxx_Error_List DevW25Qxx_EraseChip(DevW25QxxObj_TypeDef *dev);
-static DevW25Qxx_DeviceInfo_TypeDef DevW25Qxx_Get_Info(DevW25QxxObj_TypeDef *dev);
+static DevNorFlash_Info_TypeDef DevW25Qxx_Get_Info(DevW25QxxObj_TypeDef *dev);
 static uint32_t DevW25Qxx_Get_Section_StartAddr(DevW25QxxObj_TypeDef *dev, uint32_t addr);
 
 DevW25Qxx_TypeDef DevW25Qxx = {
@@ -205,6 +205,11 @@ static DevW25Qxx_Error_List DevW25Qxx_ReadSector(DevW25QxxObj_TypeDef *dev, uint
         (Size != W25QXX_SECTOR_SIZE))
         return DevW25Qxx_Error;
 
+    if (dev->busy)
+        return DevW25Qxx_Busy;
+
+    dev->busy = true;
+
     /* Configure the command */
     cmd[1] = (uint8_t)(ReadAddr >> 16);
     cmd[2] = (uint8_t)(ReadAddr >> 8);
@@ -214,6 +219,7 @@ static DevW25Qxx_Error_List DevW25Qxx_ReadSector(DevW25QxxObj_TypeDef *dev, uint
     read_state = DevW25Qxx_BusTrans(dev, cmd, sizeof(cmd)) & DevW25Qxx_BusReceive(dev, pData, Size);
     dev->cs_ctl(true);
 
+    dev->busy = false;
     if (read_state)
         return DevW25Qxx_Ok;
 
@@ -235,6 +241,10 @@ static DevW25Qxx_Error_List DevW25Qxx_WriteSector(DevW25QxxObj_TypeDef *dev, uin
         (WriteAddr % W25QXX_SECTOR_SIZE))
         return DevW25Qxx_Error;
 
+    if (dev->busy)
+        return DevW25Qxx_Busy;
+
+    dev->busy = true;
     /* Calculation of the size between the write address and the end of the page */
     current_addr = 0;
 
@@ -263,7 +273,10 @@ static DevW25Qxx_Error_List DevW25Qxx_WriteSector(DevW25QxxObj_TypeDef *dev, uin
 
         /* Enable write operations */
         if (DevW25Qxx_WriteEnableCtl(dev, true) != DevW25Qxx_Ok)
+        {
+            dev->busy = false;
             return DevW25Qxx_Error;
+        }
 
         /* Send the command Transmission of the data */
         dev->cs_ctl(false);
@@ -276,7 +289,10 @@ static DevW25Qxx_Error_List DevW25Qxx_WriteSector(DevW25QxxObj_TypeDef *dev, uin
         {
             /* Check for the Timeout */
             if ((dev->systick() - tickstart) > W25Qx_TIMEOUT_VALUE)
+            {
+                dev->busy = false;
                 return DevW25Qxx_TimeOut;
+            }
         }
 
         /* Update the address and size variables for next page programming */
@@ -285,6 +301,7 @@ static DevW25Qxx_Error_List DevW25Qxx_WriteSector(DevW25QxxObj_TypeDef *dev, uin
         current_size = ((current_addr + W25Q128FV_PAGE_SIZE) > end_addr) ? (end_addr - current_addr) : W25Q128FV_PAGE_SIZE;
     } while (current_addr < end_addr);
 
+    dev->busy = false;
     return DevW25Qxx_Ok;
 }
 
@@ -297,6 +314,10 @@ static DevW25Qxx_Error_List DevW25Qxx_EraseChip(DevW25QxxObj_TypeDef *dev)
     if ((dev == NULL) || (dev->cs_ctl == NULL) || (dev->systick == NULL))
         return DevW25Qxx_Error;
 
+    if (dev->busy)
+        return DevW25Qxx_Busy;
+
+    dev->busy = true;
     tickstart = dev->systick();
 
     if (DevW25Qxx_WriteEnableCtl(dev, true) != DevW25Qxx_Ok)
@@ -307,16 +328,23 @@ static DevW25Qxx_Error_List DevW25Qxx_EraseChip(DevW25QxxObj_TypeDef *dev)
     dev->cs_ctl(true);
 
     if (!erase_state)
+    {
+        dev->busy = false;
         return DevW25Qxx_Error;
+    }
 
     /* Wait the end of Flash writing */
     while (DevW25Qxx_GetStatue(dev) != DevW25Qxx_Busy)
     {
         /* Check for the Timeout */
         if ((dev->systick() - tickstart) > W25Q128FV_BULK_ERASE_MAX_TIME)
+        {
+            dev->busy = false;
             return DevW25Qxx_TimeOut;
+        }
     }
 
+    dev->busy = false;
     return DevW25Qxx_Ok;
 }
 
@@ -332,8 +360,12 @@ static DevW25Qxx_Error_List DevW25Qxx_EraseSector(DevW25QxxObj_TypeDef *dev, uin
     if ((dev == NULL) || (dev->cs_ctl == NULL) || (dev->systick == NULL) || (Address % W25QXX_SECTOR_SIZE))
         return DevW25Qxx_Error;
 
+    if (dev->busy)
+        return DevW25Qxx_Busy;
+
     tickstart = dev->systick();
 
+    dev->busy = true;
     /* Enable write operations Send the read ID command */
     if (DevW25Qxx_WriteEnableCtl(dev, true) != DevW25Qxx_Ok)
         return DevW25Qxx_Error;
@@ -343,29 +375,35 @@ static DevW25Qxx_Error_List DevW25Qxx_EraseSector(DevW25QxxObj_TypeDef *dev, uin
     dev->cs_ctl(true);
 
     if (!erase_state)
+    {
+        dev->busy = false;
         return DevW25Qxx_Error;
+    }
 
     /* Wait the end of Flash writing */
     while (DevW25Qxx_GetStatue(dev) == DevW25Qxx_Busy)
     {
         /* Check for the Timeout */
         if ((dev->systick() - tickstart) > W25Q128FV_SECTOR_ERASE_MAX_TIME)
+        {
+            dev->busy = false;
             return DevW25Qxx_TimeOut;
+        }
     }
 
+    dev->busy = false;
     return DevW25Qxx_Ok;
 }
 
-static DevW25Qxx_DeviceInfo_TypeDef DevW25Qxx_Get_Info(DevW25QxxObj_TypeDef *dev)
+static DevNorFlash_Info_TypeDef DevW25Qxx_Get_Info(DevW25QxxObj_TypeDef *dev)
 {
-    DevW25Qxx_DeviceInfo_TypeDef info;
+    DevNorFlash_Info_TypeDef info;
     
-    memset(&info, 0, sizeof(DevW25Qxx_DeviceInfo_TypeDef));
+    memset(&info, 0, sizeof(DevNorFlash_Info_TypeDef));
 
     if (dev && (dev->prod_type != DevW25Q_None))
     {
         info.start_addr = W25QXX_BASE_ADDRESS;
-        info.prod_type = dev->prod_type;
         info.prod_code = dev->prod_code;
 
         /* currently we only have such type of flash chip on the evk or fc-board */

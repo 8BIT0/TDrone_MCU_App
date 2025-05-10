@@ -1,5 +1,4 @@
 #include "Bsp_SDRAM.h"
-#include "Bsp_GPIO.h"
 
 #define To_SDRAM_Handle(x) ((SDRAM_HandleTypeDef *)x)
 
@@ -177,5 +176,13 @@ bool BspSDRAM_Init(BspSDRAMObj_TypeDef *obj)
 	
     obj->init_state = true;
     return true;
+}
+
+void BspSDRAM_DeInit(BspSDRAMObj_TypeDef obj)
+{
+    if (obj.hdl == NULL)
+        return;
+
+    HAL_SDRAM_DeInit(To_SDRAM_Handle(obj.hdl));
 }
 

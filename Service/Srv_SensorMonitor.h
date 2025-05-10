@@ -82,7 +82,6 @@ typedef union
 
 typedef struct
 {
-    bool sensorboard_bus_init;
     SrvSensorReg_TypeDef init_state_reg;
 
     void *sensorboard_cs_obj;

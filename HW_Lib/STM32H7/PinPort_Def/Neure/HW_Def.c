@@ -2,6 +2,12 @@
 
 const uint8_t HWVer[3] = {0, 0, 5};
 
+#if (FLASH_CHIP_STATE == Storage_ChipBus_Spi)
+SPI_HandleTypeDef ExtFlash_Bus_InstObj;
+#elif (FLASH_CHIP_STATE == Storage_ChipBus_QSpi)
+BspQSPI_Config_TypeDef *ExtFlash_Bus_InstObj = NULL;
+#endif
+
 DebugPinObj_TypeDef Debug_PC0 = {
     .port = GPIOC,
     .pin = GPIO_PIN_0,
@@ -62,16 +68,16 @@ DevLedObj_TypeDef Led1 = {
     .init_state = true,
 };
 
-BspGPIO_Obj_TypeDef SensorBoadrd_CSPin = {
+BspGPIO_Obj_TypeDef IMU_CSPin = {
     .init_state = true,
-    .pin = SENSOR_CS_PIN,
-    .port = SENSOR_CS_PORT,
+    .pin = IMU_CS_PIN,
+    .port = IMU_CS_PORT,
 };
 
-BspGPIO_Obj_TypeDef SensorBoadrd_INTPin = {
+BspGPIO_Obj_TypeDef IMU_INTPin = {
     .init_state = true,
-    .pin = SENSOR_INT_PIN,
-    .port = SENSOR_INT_PORT,
+    .pin = IMU_INT_PIN,
+    .port = IMU_INT_PORT,
 };
 
 BspGPIO_Obj_TypeDef Uart4_TxPin = {
@@ -98,16 +104,24 @@ BspGPIO_Obj_TypeDef Uart1_RxPin = {
     .alternate = GPIO_AF7_USART1,
 };
 
-BspSPI_PinConfig_TypeDef SensorBoard_BusPin = {
+BspSPI_PinConfig_TypeDef IMU_BusPin = {
     .pin_Alternate = GPIO_AF5_SPI1,
 
-    .port_clk = SENSOR_CLK_PORT,
-    .port_miso = SENSOR_MISO_PORT,
-    .port_mosi = SENSOR_MOSI_PORT,
+    .port_clk = IMU_CLK_PORT,
+    .port_miso = IMU_MISO_PORT,
+    .port_mosi = IMU_MOSI_PORT,
 
-    .pin_clk = SENSOR_CLK_PIN,
-    .pin_miso = SENSOR_MISO_PIN,
-    .pin_mosi = SENSOR_MOSI_PIN,
+    .pin_clk = IMU_CLK_PIN,
+    .pin_miso = IMU_MISO_PIN,
+    .pin_mosi = IMU_MOSI_PIN,
+};
+
+BspIIC_PinConfig_TypeDef SrvBaro_BusPin = {
+    .pin_Alternate = GPIO_AF4_I2C2,
+    .port_sda = GPIOB,
+    .port_sck = GPIOB,
+    .pin_sda = GPIO_PIN_11,
+    .pin_sck = GPIO_PIN_10,
 };
 
 BspGPIO_Obj_TypeDef USB_DctPin = {
@@ -116,38 +130,63 @@ BspGPIO_Obj_TypeDef USB_DctPin = {
     .port = USB_DETECT_INT_PORT,
 };
 
-BspSPI_Config_TypeDef SensorBoard_BusCfg = {
-    .work_mode = BspSPI_Mode_Master,
-    .Instance = SENSOR_SPI_BUS,
+BspSPI_Config_TypeDef IMU_BusCfg = {
+    .Instance = IMU_SPI_BUS,
     .CLKPolarity = SPI_POLARITY_HIGH,
     .CLKPhase = SPI_PHASE_2EDGE,
     .BaudRatePrescaler = SPI_BAUDRATEPRESCALER_4,
 };
 
-void Mag_Dir_Tune(float *mag)
-{
+BspIICObj_TypeDef Baro_BusCfg = {
+    .init = false,
+    .instance_id = BARO_BUS,
+    .Pin = &SrvBaro_BusPin,
+};
 
-}
-
-void IMU_Dir_Tune(float *gyr, float *acc)
+void BspQSPI_Pin_Init(void)
 {
-    double gyr_tmp[Axis_Sum] = {0.0};
-    double acc_tmp[Axis_Sum] = {0.0};
+    GPIO_InitTypeDef GPIO_InitStruct = {0};
+
+    __HAL_RCC_GPIOB_CLK_ENABLE();
+    __HAL_RCC_GPIOD_CLK_ENABLE();
+    __HAL_RCC_GPIOE_CLK_ENABLE();
+
+    /****************************************************** 
+		PB2     ------> QUADSPI_CLK	
+		PB6     ------> QUADSPI_BK1_NCS 		
+		PD11    ------> QUADSPI_BK1_IO0
+		PD12    ------> QUADSPI_BK1_IO1		
+		PE2     ------> QUADSPI_BK1_IO2	
+		PD13    ------> QUADSPI_BK1_IO3
+	*******************************************************/
+		
+    GPIO_InitStruct.Mode        = GPIO_MODE_AF_PP;
+    GPIO_InitStruct.Pull        = GPIO_NOPULL;
+    GPIO_InitStruct.Speed       = GPIO_SPEED_FREQ_VERY_HIGH;
     
-    if (gyr && acc)
-    {
-        for (uint8_t i = Axis_X; i < Axis_Sum; i++)
-        {
-            gyr_tmp[i] = gyr[i];
-            acc_tmp[i] = acc[i];
-        }
+    GPIO_InitStruct.Pin         = GPIO_PIN_2;
+    GPIO_InitStruct.Alternate   = GPIO_AF9_QUADSPI;
+    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-        gyr[Axis_X] = -gyr_tmp[Axis_X];
-        gyr[Axis_Y] = -gyr_tmp[Axis_Y];
-
-        acc[Axis_X] = -acc_tmp[Axis_X];
-        acc[Axis_Y] = -acc_tmp[Axis_Y];
-    }
+    GPIO_InitStruct.Pin         = GPIO_PIN_6;
+    GPIO_InitStruct.Alternate   = GPIO_AF10_QUADSPI;
+    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+    
+    GPIO_InitStruct.Pin         = GPIO_PIN_11;
+    GPIO_InitStruct.Alternate   = GPIO_AF9_QUADSPI;
+    HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+    
+    GPIO_InitStruct.Pin         = GPIO_PIN_12;
+    GPIO_InitStruct.Alternate   = GPIO_AF9_QUADSPI;
+    HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+    
+    GPIO_InitStruct.Pin         = GPIO_PIN_2;
+    GPIO_InitStruct.Alternate   = GPIO_AF9_QUADSPI;
+    HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
+    
+    GPIO_InitStruct.Pin         = GPIO_PIN_13;
+    GPIO_InitStruct.Alternate   = GPIO_AF9_QUADSPI;
+    HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 }
 
 void BspSDRAM_Pin_Init(void)

@@ -35,6 +35,7 @@ static bool BspTimer_PWM_Init(BspTimerPWMObj_TypeDef *obj,
 static void BspTimer_PWM_Start(BspTimerPWMObj_TypeDef *obj);
 static void BspTimer_DMA_Start(BspTimerPWMObj_TypeDef *obj);
 static uint32_t BspTimer_Get_Clock_Freq(BspTimerPWMObj_TypeDef *obj);
+static bool BspTimer_Tick_Init(BspTimerTickObj_TypeDef *obj, uint32_t perscale, uint32_t period);
 
 BspTimerPWM_TypeDef BspTimer_PWM = {
     .init = BspTimer_PWM_Init,

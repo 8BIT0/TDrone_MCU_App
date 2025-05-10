@@ -5,41 +5,31 @@
 extern "C" {
 #endif
 
-#include "util.h"
+#include "../../common/util.h"
+#include "Dev_W25Qxx_QSPI.h"
+#include "Dev_W25Qxx.h"
 #include "../../FCHW_Config.h"
 
-#if (FLASH_CHIP_STATE == ON)
 #define Flash_Storage_TabSize           (4 Kb)
-#define Flash_Storage_InfoPageSize      (1 Kb)
-#else
-#define Flash_Storage_TabSize           (0 Kb)
-#define Flash_Storage_InfoPageSize      (0 Kb)
-#endif
 
 #define Storage_TabSize                 Flash_Storage_TabSize
-#define Storage_InfoPageSize            Flash_Storage_InfoPageSize
+#define Storage_InfoPageSize            Flash_Storage_TabSize
 
 #define Storage_Assert(x)               while(x)
 
 #define Format_Retry_Cnt                5
-#define ExternalModule_ReInit_Cnt       5
+#define Module_ReInit_Cnt               5
 
 #define Storage_ErrorCode_ToStr(x)      #x
 
 #define From_Start_Address              0
 
-#define BootSection_Block_Size          (4 Kb)
-#define BootTab_Num 1
+#define Storage_ReserveBlock_Size       (4 Kb)
 
-#define Storage_OnChip_Max_Capacity     256
-#define Storage_ReserveBlock_Size       128
+#define Storage_Item_Capacity           (1 Kb)
 
-#define Storage_ExtFlash_Max_Capacity   (1 Kb)
-
-#define INTERNAL_STORAGE_PAGE_TAG       "[InternalFlash Storage]"
 #define EXTERNAL_STORAGE_PAGE_TAG       "[ExternalFlash Storage]"
-#define INTERNAL_PAGE_TAG_SIZE          strlen(INTERNAL_STORAGE_PAGE_TAG)
-#define EXTERNAL_PAGE_TAG_SIZE          strlen(EXTERNAL_STORAGE_PAGE_TAG)
+#define EXTERNAL_PAGE_TAG_SIZE          (strlen(EXTERNAL_STORAGE_PAGE_TAG) + 1)
 
 #define STORAGE_NAME_LEN                41
 #define STORAGE_ITEM_HEAD_TAG           0xAA
@@ -49,6 +39,20 @@ extern "C" {
 #define STORAGE_DATA_ALIGN              4
 #define STORAGE_MIN_BYTE_SIZE           1
 #define STORAGE_FREEITEM_NAME           "Item_Avaliable"
+
+#define App_Firmware_PhyAddrOffset      0x00
+#define App_Firmware_Size               (1 Mb)
+
+#define Storage_Start_Addr              App_Firmware_Size
+
+#define Flash_Storage_DefaultData       0xFF
+#define Flash_Storage_ResData           0x55
+#define Flash_Storage_TotalSize         (2 Mb)
+
+/* store boot info boot parameter and firmware */
+#define FLash_ReserveSec_Size           (4 Kb)
+#define Flash_SysDataSec_Size           (64 Kb)
+#define Flash_UserDataSec_Size          (1 Mb)
 
 #ifdef __cplusplus
 }

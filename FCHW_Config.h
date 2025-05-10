@@ -13,7 +13,6 @@
 #define Storage_ChipBus_Spi     (Storage_ChipBus_None + 1)
 #define Storage_ChipBus_QSpi    (Storage_ChipBus_Spi + 1)
 
-#define FLASH_CHIP_ENABLE_STATE OFF
 #define RADIO_NUM               1
 
 #define Storage_InfoPageSize Flash_Storage_InfoPageSize
@@ -34,13 +33,14 @@ extern uint32_t __sdram_s1_e;
 #define App_Address_Base    ((uint32_t)&__app_s)
 #define App_Section_Size    ((uint32_t)&__app_e - (uint32_t)&__app_s)
 
-#define SD_CARD             SD_CARD_ENABLE_STATE
-#define FLASH_CHIP_STATE    FLASH_CHIP_ENABLE_STATE
+#define FLASH_CHIP_STATE    Storage_ChipBus_QSpi
 #define RADIO_UART_NUM      RADIO_NUM
 
 #define FC_SDRAM_Base_Addr  ((uint32_t)(&__sdram_s1_s))
 #define FC_SDRAM_Size       ((uint32_t)(&__sdram_s1_s) - (uint32_t)(&__sdram_s1_e))
 
 #define CODE_TYPE           ON_APP
+
+#define DEBUG_ENABLE        OFF
 
 #endif

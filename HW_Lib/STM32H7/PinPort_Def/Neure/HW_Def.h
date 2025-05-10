@@ -9,18 +9,19 @@ extern "C" {
 #include "Bsp_IIC.h"
 #include "Bsp_DMA.h"
 #include "Bsp_SPI.h"
-#include "Bsp_SDMMC.h"
+#include "Bsp_QSPI.h"
 #include "Bsp_Uart.h"
 #include "Bsp_Flash.h"
 #include "debug_util.h"
 #include "Dev_Led.h"
 #include "../../../../FCHW_Config.h"
-#include "../../common/gen_physic_def/imu_data.h"
 
 extern const uint8_t HWVer[3];
 
 #define LED1_PIN GPIO_PIN_7
 #define LED1_PORT GPIOH
+
+#define Baro_SPI_BUS NULL
 
 /* SPI3 Reserve SPI */
 #define RESERVE_SPI_CLK_PORT GPIOB
@@ -32,23 +33,23 @@ extern const uint8_t HWVer[3];
 #define RESERVE_SPI_MOSI_PORT GPIOB
 #define RESERVE_SPI_MOSI_PIN GPIO_PIN_5
 
-/* Sensor SPI Bus */
-#define SENSOR_SPI_BUS SPI1
+/* MPU6000 Pin */
+#define IMU_SPI_BUS SPI1
 
-#define SENSOR_CS_PORT GPIOC
-#define SENSOR_CS_PIN GPIO_PIN_15
+#define IMU_CS_PORT GPIOC
+#define IMU_CS_PIN GPIO_PIN_15
 
-#define SENSOR_INT_PORT GPIOB
-#define SENSOR_INT_PIN GPIO_PIN_2
+#define IMU_INT_PORT GPIOB
+#define IMU_INT_PIN GPIO_PIN_2
 
-#define SENSOR_CLK_PORT GPIOA
-#define SENSOR_CLK_PIN GPIO_PIN_5
+#define IMU_CLK_PORT GPIOA
+#define IMU_CLK_PIN GPIO_PIN_5
 
-#define SENSOR_MISO_PORT GPIOA
-#define SENSOR_MISO_PIN GPIO_PIN_6
+#define IMU_MISO_PORT GPIOA
+#define IMU_MISO_PIN GPIO_PIN_6
 
-#define SENSOR_MOSI_PORT GPIOD
-#define SENSOR_MOSI_PIN GPIO_PIN_7
+#define IMU_MOSI_PORT GPIOD
+#define IMU_MOSI_PIN GPIO_PIN_7
 
 /* QSPI Port */
 #define QSPI_CLK_PORT GPIOB
@@ -73,6 +74,15 @@ extern const uint8_t HWVer[3];
 #define QSPI_BK_IO1_ALT GPIO_AF9_QUADSPI
 #define QSPI_BK_IO2_ALT GPIO_AF9_QUADSPI
 #define QSPI_BK_IO3_ALT GPIO_AF9_QUADSPI
+
+/* Baro IIC Pin */
+#define BARO_BUS  BspIIC_Instance_I2C_2
+#define IIC2_SDA_PORT GPIOB
+#define IIC2_SDA_PIN GPIO_PIN_11
+#define IIC2_SCK_PORT GPIOB
+#define IIC2_SCK_PIN GPIO_PIN_10
+
+extern BspIICObj_TypeDef Baro_BusCfg;
 
 /* Serial Pin */
 #define UART4_TX_PORT GPIOB
@@ -114,16 +124,19 @@ extern const uint8_t HWVer[3];
 #define PWM_SIG_3_DMA_CHANNEL Bsp_DMA_Stream_2
 #define PWM_SIG_3_PIN_AF GPIO_AF2_TIM5
 
+#define PWM_SIG_4_TIM TIM5
+#define PWM_SIG_4_TIM_CHANNEL TIM_CHANNEL_2
+#define PWM_SIG_4_PORT GPIOA
+#define PWM_SIG_4_PIN GPIO_PIN_1
+#define PWM_SIG_4_DMA Bsp_DMA_1
+#define PWM_SIG_4_DMA_CHANNEL Bsp_DMA_Stream_3
+#define PWM_SIG_4_PIN_AF GPIO_AF2_TIM5
+
 #define RECEIVER_PORT UART4
 #define RECEIVER_CRSF_RX_DMA Bsp_DMA_None               // Bsp_DMA_1
 #define RECEIVER_CRSF_RX_DMA_STREAM Bsp_DMA_Stream_None // Bsp_DMA_Stream_4
 #define RECEIVER_CRSF_TX_DMA Bsp_DMA_None               // Bsp_DMA_1
 #define RECEIVER_CRSF_TX_DMA_STREAM Bsp_DMA_Stream_None // Bsp_DMA_Stream_5
-
-#define RECEIVER_SBUS_RX_DMA Bsp_DMA_1
-#define RECEIVER_SBUS_RX_DMA_STREAM Bsp_DMA_Stream_4
-#define RECEIVER_SBUS_TX_DMA Bsp_DMA_1
-#define RECEIVER_SBUS_TX_DMA_STREAM Bsp_DMA_Stream_5
 
 #define CRSF_TX_PIN Uart4_TxPin
 #define CRSF_RX_PIN Uart4_RxPin
@@ -151,63 +164,25 @@ extern const uint8_t HWVer[3];
 #define RADIO_RX_DMA Bsp_DMA_2
 #define RADIO_RX_DMA_STREAM Bsp_DMA_Stream_1
 
-#if (FLASH_CHIP_STATE == ON)
-#define ExtFlash_Bus_Type Storage_ChipBus_Spi
-#define ExtFlash_Bus_Clock_Div SPI_MCLK_DIV_4
-#define ExtFlash_Chip_Type Storage_ChipType_W25Qxx
-#define ExtFlash_Bus_Api BspSPI
-#define ExtFLash_Bus_Instance (void *)SPI2
-#define ExtFlash_Bus_CLKPhase SPI_CLOCK_PHASE_2EDGE
-#define ExtFlash_Bus_CLKPolarity SPI_CLOCK_POLARITY_HIGH
-#define ExtFlash_CS_Pin ExtFlash_CSPin
-#define ExtFlash_Bus_Pin ExtFlash_SPIPin
-
-#define App_Firmware_Addr W25QXX_BASE_ADDRESS
-#define App_Firmware_Size (1 Mb)
-
-#define ExtFlash_Dev_Api (void *)(&DevW25Qxx)
-#define ExtFlash_Start_Addr (App_Firmware_Addr + App_Firmware_Size)
-
-#define ExtFlash_Storage_DefaultData FLASH_DEFAULT_DATA
-#define ExtFlash_Storage_TotalSize (512 Kb)
-#define ExtFlash_Storage_TabSize Flash_Storage_TabSize
-#define ExtFlash_Storage_InfoPageSize Flash_Storage_InfoPageSize
-#define ExtFlash_Storage_Reserve_Size (1 Mb) - ExtFlash_Storage_TotalSize 
-
-#define BlackBox_Storage_Start_Addr (ExtFlash_Start_Addr + \
-                                     ExtFlash_Storage_TotalSize + \
-                                     ExtFlash_Storage_Reserve_Size)
-
-/* store boot info boot parameter and firmware */
-#define ExternalFlash_BootDataSec_Size (32 Kb)
-#define ExternalFlash_SysDataSec_Size (64 Kb)
-#define ExternalFlash_UserDataSec_Size (64 Kb)
-
-extern BspGPIO_Obj_TypeDef ExtFlash_CSPin;
-extern BspSPI_PinConfig_TypeDef ExtFlash_SPIPin;
-#else
-#define ExtFlash_Bus_Type Storage_ChipBus_None
-
-#define App_Firmware_Addr 0
-#define App_Firmware_Size (0 Mb)
-
-#define ExtFlash_Dev_Api NULL
-#define ExtFlash_Start_Addr (App_Firmware_Addr + App_Firmware_Size)
-
-#define ExtFlash_Storage_DefaultData FLASH_DEFAULT_DATA
-#define ExtFlash_Storage_TotalSize (0 Kb)
-#define ExtFlash_Storage_TabSize Flash_Storage_TabSize
-#define ExtFlash_Storage_InfoPageSize Flash_Storage_InfoPageSize
-#define ExtFlash_Storage_Reserve_Size (0 Mb) - ExtFlash_Storage_TotalSize 
-
-#define BlackBox_Storage_Start_Addr (ExtFlash_Start_Addr + \
-                                     ExtFlash_Storage_TotalSize + \
-                                     ExtFlash_Storage_Reserve_Size)
-
-/* store boot info boot parameter and firmware */
-#define ExternalFlash_BootDataSec_Size (0 Kb)
-#define ExternalFlash_SysDataSec_Size (0 Kb)
-#define ExternalFlash_UserDataSec_Size (0 Kb)
+#if (FLASH_CHIP_STATE != Storage_ChipBus_None)
+    #define Flash_Chip_Type Storage_ChipType_W25Qxx
+    #if (FLASH_CHIP_STATE == Storage_ChipBus_Spi)
+        #define ExtFlash_Bus_Clock_Div SPI_MCLK_DIV_4
+        #define ExtFlash_Bus_Api BspSPI
+        #define ExtFLash_Bus_Instance (void *)SPI2
+        #define ExtFlash_Bus_CLKPhase SPI_CLOCK_PHASE_2EDGE
+        #define ExtFlash_Bus_CLKPolarity SPI_CLOCK_POLARITY_HIGH
+        #define ExtFlash_CS_Pin ExtFlash_CSPin
+        #define ExtFlash_Bus_Pin ExtFlash_SPIPin
+        
+        extern BspGPIO_Obj_TypeDef ExtFlash_CSPin;
+        extern BspSPI_PinConfig_TypeDef ExtFlash_SPIPin;
+        extern SPI_HandleTypeDef ExtFlash_Bus_InstObj;
+    #elif (FLASH_CHIP_STATE == Storage_ChipBus_QSpi)
+        #define ExtFlash_Bus_Api BspQspi
+        #define ExtFlash_Bus_Instance (void *)QUADSPI
+        extern BspQSPI_Config_TypeDef *ExtFlash_Bus_InstObj;
+    #endif
 #endif
 
 extern DebugPinObj_TypeDef Debug_PC0;
@@ -223,28 +198,36 @@ extern DebugPinObj_TypeDef Debug_PB10;
 extern DevLedObj_TypeDef Led1;
 
 extern BspGPIO_Obj_TypeDef USB_DctPin;
-extern BspGPIO_Obj_TypeDef SensorBoadrd_CSPin;
-extern BspGPIO_Obj_TypeDef SensorBoadrd_INTPin;
+extern BspGPIO_Obj_TypeDef IMU_CSPin;
+extern BspGPIO_Obj_TypeDef IMU_INTPin;
 extern BspGPIO_Obj_TypeDef Uart4_TxPin;
 extern BspGPIO_Obj_TypeDef Uart4_RxPin;
 extern BspGPIO_Obj_TypeDef Uart1_TxPin;
 extern BspGPIO_Obj_TypeDef Uart1_RxPin;
 
-extern BspSPI_PinConfig_TypeDef SensorBoard_BusPin;
-extern BspSPI_Config_TypeDef SensorBoard_BusCfg;
+extern BspSPI_PinConfig_TypeDef PriIMU_BusPin;
+extern BspSPI_PinConfig_TypeDef SecIMU_BusPin;
+
+extern BspIIC_PinConfig_TypeDef SrvBaro_BusPin;
+
+extern BspSPI_Config_TypeDef PriIMU_BusCfg;
+extern BspSPI_Config_TypeDef SecIMU_BusCfg;
 
 extern DebugPrintObj_TypeDef DebugPort;
+
 #define DEBUG_TAG "[ DEBUG INFO ] "
 #define DEBUG_INFO(fmt, ...) Debug_Print(&DebugPort, DEBUG_TAG, fmt, ##__VA_ARGS__)
 
-void IMU_Dir_Tune(float *gyr, float *acc);
-void Mag_Dir_Tune(float *mag);
-
 #define Select_Hardware "Hardware NEURE"
 
+#define BARO_TYPE Baro_Type_BMP280
+#define BARO_BUS_TYPE SrvBaro_Bus_SPI
 #define Sample_Blinkly Led1
 #define Noti_LED_Ptr NULL
 #define BlackBox_Noti_Ptr NULL
+
+extern SPI_HandleTypeDef Baro_Bus_Instance;
+extern BspGPIO_Obj_TypeDef *p_Baro_CS;
 
 #ifdef __cplusplus
 }

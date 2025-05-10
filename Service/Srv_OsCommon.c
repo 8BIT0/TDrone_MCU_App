@@ -4,7 +4,6 @@
 #include "kernel.h"
 #include "HW_Def.h"
 #include "Bsp_SDRAM.h"
-#include "shell_port.h"
 
 typedef void (*Application_Func)(void);
 
@@ -25,6 +24,8 @@ typedef struct
 
     uint32_t t_w_cnt;           /* test write count */
     uint32_t t_w_failed_cnt;    /* test write failed count */
+    
+    BspSDRAMObj_TypeDef sdram_obj;
 }SrvOsCommon_HeapMonitor_TypeDef;
 
 /* internal vriable */
@@ -58,6 +59,7 @@ SrvOsCommon_TypeDef SrvOsCommon = {
     .set_systimer_period = Kernel_Set_PeriodValue,
     .systimer_tick_to_us = Kernel_TickVal_To_Us,
     .systimer_disable = Kernel_DisableTimer_IRQ,
+    .systimer_deinit = Kernel_BaseTick_DeInit,
     .systimer_enable = Kernel_EnableTimer_IRQ,
     .disable_all_irq = __disable_irq,
     .enable_all_irq = __enable_irq,
@@ -68,21 +70,20 @@ static bool SrvOsCommon_Init(void)
 {
     uint32_t t_addr = 0;
     bool state = true;
-    BspSDRAMObj_TypeDef sdram_obj;
     memset(&OsHeap_Monitor, 0, sizeof(SrvOsCommon_HeapMonitor_TypeDef));
 
     OsHeap_Monitor.sdram_state = false;
-    sdram_obj.hdl = malloc(SDRAM_HandleType_Size);
-    if (sdram_obj.hdl)
+    OsHeap_Monitor.sdram_obj.hdl = malloc(SDRAM_HandleType_Size);
+    if (OsHeap_Monitor.sdram_obj.hdl)
     {
-        sdram_obj.bank_num      = BspSDRAM_BankNum_4;
-        sdram_obj.bank_area     = BspSDRAM_Bank_1;
-        sdram_obj.bus_width     = BspSDRAM_BusWidth_16;
-        sdram_obj.column_bits   = BspSDRAM_Column_9Bits;
-        sdram_obj.row_bits      = BspSDRAM_Row_13Bits;
+        OsHeap_Monitor.sdram_obj.bank_num      = BspSDRAM_BankNum_4;
+        OsHeap_Monitor.sdram_obj.bank_area     = BspSDRAM_Bank_1;
+        OsHeap_Monitor.sdram_obj.bus_width     = BspSDRAM_BusWidth_16;
+        OsHeap_Monitor.sdram_obj.column_bits   = BspSDRAM_Column_9Bits;
+        OsHeap_Monitor.sdram_obj.row_bits      = BspSDRAM_Row_13Bits;
 
         /* init sdram if have */
-        if (BspSDRAM_Init(&sdram_obj))
+        if (BspSDRAM_Init(&OsHeap_Monitor.sdram_obj))
         {
             /* sdram test */
             OsHeap_Monitor.sdram_state = true;
@@ -178,8 +179,7 @@ static void SrvOsCommon_JumpToAddr(uint32_t addr)
 {
     uint32_t jump_addr = 0;
 
-    if ((addr <= (uint32_t)&__boot_e) || \
-        ((addr & 0xFF000000) != (uint32_t)&__rom_s))
+    if ((addr < (uint32_t)&__boot_e) || ((addr & 0xFF000000) != (uint32_t)&__rom_s))
         return;
 
     jump_addr = *(volatile uint32_t *)(addr + 4);
@@ -187,7 +187,8 @@ static void SrvOsCommon_JumpToAddr(uint32_t addr)
     
     /* disable all irq before jump */
     SrvOsCommon.disable_all_irq();
-    
+    __set_CONTROL(0);
+
     ((Application_Func)jump_addr)();
 }
 
@@ -202,5 +203,5 @@ static void SrvOsCommon_DelayUntil(uint32_t *prev_time, uint32_t ms)
         osDelayUntil(prev_time, ms);
 }
 
-SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0) | SHELL_CMD_TYPE(SHELL_TYPE_CMD_FUNC) | SHELL_CMD_DISABLE_RETURN, reboot, Kernel_reboot, System ReBoot);
+// SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0) | SHELL_CMD_TYPE(SHELL_TYPE_CMD_FUNC) | SHELL_CMD_DISABLE_RETURN, reboot, Kernel_reboot, System ReBoot);
 

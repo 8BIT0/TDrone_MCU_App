@@ -146,8 +146,6 @@ static bool SrvSensor_Board_Bus_Send(SrvSensorMonitorObj_TypeDef *obj, uint8_t *
     bool state = false;
 
     if ((obj == NULL) || \
-        (obj->sensorboard_bus_handle == NULL) || \
-        !obj->sensorboard_bus_init || \
         (p_tx == NULL) || \
         (size == 0))
         return false;
@@ -442,45 +440,6 @@ static bool SrvSensor_Board_Init(SrvSensorMonitorObj_TypeDef *obj)
     if (obj->DR_SemaID == NULL)
     {
         MONITOR_INFO("DR semaphore create failed\n");
-        return false;
-    }
-
-    obj->sensorboard_bus_init = false;
-    obj->init_state_reg.val = 0;
-    obj->sensorboard_bus_handle = MONITOR_MALLOC(sizeof(SPI_HandleTypeDef));
-    if (obj->sensorboard_bus_handle == NULL)
-    {
-        MONITOR_INFO("bus handle malloc failed\n");
-        return false;
-    }
-
-    /* init sensor board interface bus */
-    SensorBoard_BusCfg.Pin = SensorBoard_BusPin;
-    if (!BspSPI.init(SensorBoard_BusCfg, obj->sensorboard_bus_handle))
-    {
-        MONITOR_INFO("sensor board bus init failed\n");
-        MONITOR_FREE(obj->sensorboard_bus_handle);
-        obj->sensorboard_bus_handle = NULL;
-        return false;
-    }
-    obj->sensorboard_bus_init = true;
-
-    /* init sensor board CS Pin */
-    obj->sensorboard_cs_obj = MONITOR_MALLOC(sizeof(BspGPIO_Obj_TypeDef));
-    if (obj->sensorboard_cs_obj == NULL)
-    {
-        MONITOR_INFO("sensor board cs obj malloc failed\n");
-        MONITOR_FREE(obj->sensorboard_bus_handle);
-        obj->sensorboard_bus_handle = NULL;
-    }
-
-    if (!BspGPIO.out_init(To_GPIO_Obj(obj->sensorboard_cs_obj)))
-    {
-        MONITOR_INFO("sensor board cs init failed\n");
-        MONITOR_FREE(obj->sensorboard_cs_obj);
-        obj->sensorboard_cs_obj = NULL;
-        MONITOR_FREE(obj->sensorboard_bus_handle);
-        obj->sensorboard_bus_handle = NULL;
         return false;
     }
 
