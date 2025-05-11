@@ -149,10 +149,10 @@ void TaskTelemetry_Core(void const *arg)
             RCSig = Telemetry_RC_Sig_Update(&Telemetry_Monitor.RC_Setting, &Receiver_Obj);
             Telemetry_ConvertRCData_To_ControlData(RCSig, DataPipe_DataObjAddr(Rc));
 
-            /* triggered when BlackBox Toggle from true -> false */
-            if (Telemetry_BlackBox_Toggle_OnRelease(RCSig.blackbox, sys_time, TaskTelemetry_Period))
-                /* trigger blackbox */
-                TaskBlackBox_LogControl();
+            // /* triggered when BlackBox Toggle from true -> false */
+            // if (Telemetry_BlackBox_Toggle_OnRelease(RCSig.blackbox, sys_time, TaskTelemetry_Period))
+            //     /* trigger blackbox */
+            //     TaskBlackBox_LogControl();
 
             /* pipe data out */
             DataPipe_SendTo(&Receiver_smp_DataPipe, &Receiver_hub_DataPipe);

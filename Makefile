@@ -35,13 +35,13 @@ BUILD_DIR = build
 ######################################
 # C++ source
 CPP_SOURCES = \
-Task/Task_Manager.cpp \
 Task/Task_Navi.cpp \
 Algorithm/Navi_Dep/Alt_est.cpp
 
 # C sources
 C_SOURCES = \
 main.c \
+Task/Task_Manager.c \
 Algorithm/Navi_Dep/MadgwickAHRS.c \
 Algorithm/Filter_Dep/filter.c \
 Algorithm/Filter_Dep/filter_param.c \
@@ -98,6 +98,7 @@ System/shell/shell.c \
 System/kernel/kernel_stm32h743.c \
 HW_Lib/STM32H7/BSP/Bsp_GPIO.c \
 HW_Lib/STM32H7/BSP/Bsp_SPI.c \
+HW_Lib/STM32H7/BSP/Bsp_QSPI.c \
 HW_Lib/STM32H7/BSP/Bsp_SDMMC.c \
 HW_Lib/STM32H7/BSP/Bsp_Uart.c \
 HW_Lib/STM32H7/BSP/Bsp_USB.c \
@@ -137,6 +138,7 @@ HW_Lib/STM32H7/HAL_Lib/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_i2c.c \
 HW_Lib/STM32H7/HAL_Lib/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_i2c_ex.c \
 HW_Lib/STM32H7/HAL_Lib/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_exti.c \
 HW_Lib/STM32H7/HAL_Lib/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_spi.c \
+HW_Lib/STM32H7/HAL_Lib/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_qspi.c \
 HW_Lib/STM32H7/HAL_Lib/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_pcd.c \
 HW_Lib/STM32H7/HAL_Lib/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_pcd_ex.c \
 HW_Lib/STM32H7/HAL_Lib/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_sd.c \

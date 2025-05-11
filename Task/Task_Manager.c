@@ -91,7 +91,7 @@ void Task_Manager_CreateTask(void const *arg)
             TaskTelemetry_Init(TaskTelemetry_Period_def);
             TaskControl_Init(TaskControl_Period_Def);
 
-            TaskBlackBox_Init();
+            // TaskBlackBox_Init();
             TaskNavi_Init(TaslNavi_Period_Def);
             TaskFrameCTL_Init(TaskFrameCTL_Period_Def);
 
@@ -104,8 +104,8 @@ void Task_Manager_CreateTask(void const *arg)
             osThreadDef(NavTask, TaskNavi_Core, osPriorityAboveNormal, 0, 1024);
             TaskNavi_Handle = osThreadCreate(osThread(NavTask), NULL);
 
-            osThreadDef(BlackBoxTask, TaskBlackBox_Core, osPriorityNormal, 0, 4096);
-            TaskLog_Handle = osThreadCreate(osThread(BlackBoxTask), NULL);
+            // osThreadDef(BlackBoxTask, TaskBlackBox_Core, osPriorityNormal, 0, 4096);
+            // TaskLog_Handle = osThreadCreate(osThread(BlackBoxTask), NULL);
 
             osThreadDef(FrameCTLTask, TaskFrameCTL_Core, osPriorityNormal, 0, 1024);
             TaskFrameCTL_Handle = osThreadCreate(osThread(FrameCTLTask), NULL);

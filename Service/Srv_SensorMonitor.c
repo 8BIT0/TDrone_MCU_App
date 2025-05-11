@@ -124,7 +124,6 @@ static SrvSensorReg_TypeDef SrvSensor_Init(void)
     memset(&SensorMonitor, 0, sizeof(SrvSensorMonitorObj_TypeDef));
 
     /* configure sensor board */
-    SrvSensor_Board_Init(&SensorMonitor);
 
     /* configure flow sensor */
     SrvSensor_Flow_Init(&SensorMonitor);
@@ -173,8 +172,6 @@ static void SrvSensor_Flow_Sample(SrvSensorMonitorObj_TypeDef *obj)
 /* noticed all sensor sampling and processing must finished in 1ms maximum */
 static void SrvSensor_Sample(void)
 {
-    SrvSensor_Board_Sample(&SensorMonitor);
-    SrvSensor_Flow_Sample(&SensorMonitor);
 }
 
 static void SrvSensor_Set_Module_Calib(uint8_t calib_module)
