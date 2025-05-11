@@ -55,6 +55,7 @@ Task/Task_Protocol.c \
 Task/Task_Control.c \
 Device/Dev_Led.c \
 Device/Dev_W25Qxx.c \
+Device/Dev_W25Qxx_QSPI.c \
 Device/Dev_CRSF.c \
 Device/Dev_ICM426xx.c \
 Device/Dev_BMP280.c \

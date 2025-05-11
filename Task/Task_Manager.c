@@ -1,10 +1,8 @@
 #include "Task_Manager.h"
-// #include "Task_Log.h"
 #include "Task_Control.h"
 #include "Task_Telemetry.h"
 #include "Task_Navi.h"
 #include "Task_Protocol.h"
-#include "Task_BlackBox.h"
 #include "debug_util.h"
 #include "HW_Def.h"
 #include "Dev_Led.h"
@@ -13,6 +11,8 @@
 #include "../DataPipe/DataPipe.h"
 #include "shell_port.h"
 #include "Storage.h"
+#include "Dev_W25Qxx.h"
+#include "Dev_W25Qxx_QSPI.h"
 #include "cmsis_os.h"
 
 #define TaskControl_Period_Def   20 /* unit: ms period 5ms  50Hz */
@@ -31,6 +31,8 @@ osThreadId TaskManager_Handle = NULL;
 #define SYS_TAG "[ HARDWARE INFO ] "
 #define SYS_INFO(fmt, ...) Debug_Print(&DebugPort, SYS_TAG, fmt, ##__VA_ARGS__)
 
+static StorageDevObj_TypeDef StorageDevObj;
+
 void Task_Manager_Init(void)
 {
     DevLED.init(Led1);
@@ -41,6 +43,7 @@ void Task_Manager_Init(void)
     
     SrvOsCommon.init();
 
+    memset(&StorageDevObj, 0, sizeof(StorageDevObj_TypeDef));
     osThreadDef(ManagerTask, Task_Manager_CreateTask, osPriorityLow, 0, 1024);
     TaskManager_Handle = osThreadCreate(osThread(ManagerTask), NULL);
 
@@ -50,7 +53,6 @@ void Task_Manager_Init(void)
 void Task_Manager_CreateTask(void const *arg)
 {
     bool init = false;
-    StorageDevObj_TypeDef *storage_ExtFlashObj = NULL;
 
     DebugPort.free = SrvOsCommon.free;
     DebugPort.malloc = SrvOsCommon.malloc;
@@ -59,23 +61,14 @@ void Task_Manager_CreateTask(void const *arg)
     SYS_INFO("%s\r\n", Select_Hardware);
     SYS_INFO("Hardware Version %d.%d.%d\r\n", HWVer[0], HWVer[1], HWVer[2]);
     
-#if (FLASH_CHIP_STATE == ON)
-    storage_ExtFlashObj = (StorageDevObj_TypeDef *)SrvOsCommon.malloc(sizeof(StorageDevObj_TypeDef));
-
-    if (storage_ExtFlashObj)
-    {
-        storage_ExtFlashObj->chip_type = ExtFlash_Chip_Type;
-        storage_ExtFlashObj->api = ExtFlash_Dev_Api;
-        storage_ExtFlashObj->obj = NULL;
-    }
-    else
-    {
-        SrvOsCommon.free(storage_ExtFlashObj);
-        storage_ExtFlashObj = NULL;
-    }
+    StorageDevObj.chip_type = Flash_Chip_Type;
+#if (FLASH_CHIP_STATE == Storage_ChipBus_Spi)
+    StorageDevObj.api = (void *)&DevW25Qxx;
+#elif (FLASH_CHIP_STATE == Storage_ChipBus_QSpi)
+    StorageDevObj.api = (void *)&DevQSPIW25Qxx;
 #endif
 
-    while(1)
+    while (true)
     {
         if (!init)
         {
@@ -84,7 +77,7 @@ void Task_Manager_CreateTask(void const *arg)
             DEBUG_INFO("Sys Time: %d\r\n", sys_time);
 
             DataPipe_Init();
-            Storage.init(storage_ExtFlashObj);
+            Storage.init(&StorageDevObj);
             // SrvUpgrade.init();
             SrvComProto.init(SrvComProto_Type_MAV, NULL);
             
