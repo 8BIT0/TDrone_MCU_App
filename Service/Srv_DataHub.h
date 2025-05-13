@@ -10,9 +10,9 @@ extern "C" {
 #include <string.h>
 #include "DataPipe.h"
 #include "pos_data.h"
+#include "imu_data.h"
 #include "Srv_Actuator.h"
 #include "Srv_Receiver.h"
-#include "Srv_SensorMonitor.h"
 
 #define SRVDATAHUB_TUNNING_HEARTBEAT_TIMEOUT 3000  /* unit: ms 3S timeout */
 #define SRVDATAHUB_CONFIGRATOR_ATTACH_TIMEOUT 2000 /* unit: ms 2S timeout */
@@ -52,9 +52,6 @@ typedef union
 
 typedef struct
 {
-    SrvSensorReg_TypeDef sensor_init;
-    SrvSensorData_TypeDef sensor_data;
-
     int16_t gyro_range[2];
     int16_t acc_range[2];
     int16_t mag_range[2];
@@ -140,8 +137,6 @@ typedef struct
     bool (*get_cli_state)(bool *state);
     bool (*get_vcp_attach_state)(bool *state);
 
-    bool (*get_sensor_init_state)(SrvSensorReg_TypeDef *state);
-    bool (*get_sensor_data)(SrvSensorData_TypeDef *sensor_data);
     bool (*get_attitude)(uint32_t *time_stamp, float *pitch, float *roll, float *yaw, float *q0, float *q1, float *q2, float *q3);
     bool (*get_rc_control_data)(ControlData_TypeDef *data);
     bool (*get_cnv_control_data)(uint32_t *time_stamp, bool *arm, bool *failsafe, float *pitch, float *roll, float *gx, float *gy, float *gz);

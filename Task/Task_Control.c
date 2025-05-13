@@ -39,7 +39,6 @@
 static uint32_t imu_update_time = 0;
 static uint32_t att_update_time = 0;
 static bool failsafe = false;
-static SrvSensorReg_TypeDef sensor_init_state;
 static bool att_update = false;
 
 DataPipe_CreateDataObj(ExpControlData_TypeDef, ExpCtl);
@@ -76,9 +75,9 @@ void TaskControl_Init(uint32_t period)
         return;
 
     /* init monitor */
-    sensor_init_state.val = 0;
+    // sensor_init_state.val = 0;
     memset(&TaskControl_Monitor, 0, sizeof(TaskControl_Monitor));
-    SrvDataHub.get_sensor_init_state(&sensor_init_state);
+    // SrvDataHub.get_sensor_init_state(&sensor_init_state);
 
     /* pipe init */
     CtlData_smp_DataPipe.data_addr = (uint32_t)DataPipe_DataObjAddr(ExpCtl);
@@ -263,9 +262,7 @@ static void TaskControl_FlightControl_Polling(ControlData_TypeDef *exp_ctl_val, 
     AngControl_Out_TypeDef att_ctl_out;
     AttControl_In_TypeDef att_ctl_exp;
     AttControl_In_TypeDef att_ctl_mea;
-    SrvSensorData_TypeDef sensor_data;
 
-    memset(&sensor_data, 0, sizeof(SrvSensorData_TypeDef));
     memset(&att_ctl_exp, 0, sizeof(AttControl_In_TypeDef));
     memset(&att_ctl_out, 0, sizeof(AngControl_Out_TypeDef));
 
@@ -299,13 +296,13 @@ static void TaskControl_FlightControl_Polling(ControlData_TypeDef *exp_ctl_val, 
         DataPipe_SendTo(&CtlData_smp_DataPipe, &CtlData_log_DataPipe);
 
         // check imu filter gyro data update or not
-        if(!SrvDataHub.get_sensor_data(&sensor_data) || !sensor_init_state.bit.imu)
-            goto lock_moto;
+        // if(!SrvDataHub.get_sensor_data(&sensor_data) || !sensor_init_state.bit.imu)
+        //     goto lock_moto;
 
-        for(axis = Axis_X; axis < Axis_Sum; axis ++)
-        {
-            TaskControl_Monitor.gyr[axis] = sensor_data.scale_Gyro[axis];
-        }
+        // for(axis = Axis_X; axis < Axis_Sum; axis ++)
+        // {
+            // TaskControl_Monitor.gyr[axis] = sensor_data.scale_Gyro[axis];
+        // }
 
         /* if angular speed over ride then lock the moto and set drone as arm */
         /* get attitude */
@@ -345,53 +342,53 @@ static void TaskControl_FlightControl_Polling(ControlData_TypeDef *exp_ctl_val, 
             }
 
             /* check acc error state */
-            switch (sensor_data.acc_err)
-            {
-                case Sensor_Blunt:
-                case Sensor_exceed_Rate_of_change:
-                    angular_only = true;
-                    break;
+            // switch (sensor_data.acc_err)
+            // {
+            //     case Sensor_Blunt:
+            //     case Sensor_exceed_Rate_of_change:
+            //         angular_only = true;
+            //         break;
 
-                default:
-                    angular_only = false;
-                    break;
-            }
+            //     default:
+            //         angular_only = false;
+            //         break;
+            // }
 
             /* check gyro error state */
-            switch (sensor_data.gyro_err)
-            {
-                case Sensor_Error_None:
-                    for(axis = Axis_X; axis < Axis_Sum; axis ++)
-                    {
-                        TaskControl_Monitor.gyr_lst[axis] = TaskControl_Monitor.gyr[axis];
-                    }
-                    TaskControl_Monitor.control_abort = true;
-                    break;
+            // switch (sensor_data.gyro_err)
+            // {
+                // case Sensor_Error_None:
+                //     for(axis = Axis_X; axis < Axis_Sum; axis ++)
+                //     {
+                //         TaskControl_Monitor.gyr_lst[axis] = TaskControl_Monitor.gyr[axis];
+                //     }
+                //     TaskControl_Monitor.control_abort = true;
+                //     break;
 
-                case Sensor_Blunt:
-                case Sensor_Over_Range:
-                    /* totally waste */
-                    /* bye drone see u in another world */
-                    TaskControl_Monitor.control_abort = true;
-                    goto lock_moto;
-                    break;
+                // case Sensor_Blunt:
+                // case Sensor_Over_Range:
+                //     /* totally waste */
+                //     /* bye drone see u in another world */
+                //     TaskControl_Monitor.control_abort = true;
+                //     goto lock_moto;
+                //     break;
 
-                case Sensor_exceed_Rate_of_change:
-                    TaskControl_Monitor.angular_protect = true;
-                    if(TaskControl_Monitor.angular_warning_cnt < OVER_ANGULAR_ACCELERATE_COUNT)
-                    {
-                        TaskControl_Monitor.angular_protect = false;
-                        TaskControl_Monitor.angular_warning_cnt++;
+                // case Sensor_exceed_Rate_of_change:
+                //     TaskControl_Monitor.angular_protect = true;
+                //     if(TaskControl_Monitor.angular_warning_cnt < OVER_ANGULAR_ACCELERATE_COUNT)
+                //     {
+                //         TaskControl_Monitor.angular_protect = false;
+                //         TaskControl_Monitor.angular_warning_cnt++;
 
-                        for(axis = Axis_X; axis < Axis_Sum; axis++)
-                        {
-                            TaskControl_Monitor.gyr[axis] = TaskControl_Monitor.gyr_lst[axis];
-                        }
-                    }
-                    break;
+                //         for(axis = Axis_X; axis < Axis_Sum; axis++)
+                //         {
+                //             TaskControl_Monitor.gyr[axis] = TaskControl_Monitor.gyr_lst[axis];
+                //         }
+                //     }
+                //     break;
 
-                default: break;
-            }
+            //     default: break;
+            // }
         }
         
         if(TaskControl_Monitor.angular_protect_enable && TaskControl_Monitor.angular_protect)

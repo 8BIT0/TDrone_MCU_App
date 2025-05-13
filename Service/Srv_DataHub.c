@@ -8,10 +8,8 @@ SrvDataHub_Monitor_TypeDef SrvDataHub_Monitor = {
 };
 
 /* Pipe Object */
-DataPipe_CreateDataObj(SrvSensorData_TypeDef, Hub_SensorData);
 DataPipe_CreateDataObj(SrvActuatorPipeData_TypeDef, Hub_Actuator);
 DataPipe_CreateDataObj(ControlData_TypeDef, Hub_Telemetry_Rc);
-DataPipe_CreateDataObj(SrvSensorReg_TypeDef, Hub_Sensor_Init);
 DataPipe_CreateDataObj(IMUAtt_TypeDef, Hub_Attitude);
 DataPipe_CreateDataObj(RelMov_TypeDef, Hub_Alt);
 DataPipe_CreateDataObj(ExpControlData_TypeDef, Hub_Cnv_CtlData);
@@ -30,11 +28,9 @@ static void SrvDataHub_PipeConvertControlDataFinish_Callback(DataPipeObj_TypeDef
 
 /* external function */
 static void SrvDataHub_Init(void);
-static bool SrvDataHub_Get_SensorData(SrvSensorData_TypeDef *sensor_data);
 static bool SrvDataHub_Get_Arm(bool *arm);
 static bool SrvDataHub_Get_Failsafe(bool *failsafe);
 static bool SrvDataHub_Get_Telemetry_ControlData(ControlData_TypeDef *data);
-static bool SrvDataHub_Get_Sensor_InitState(SrvSensorReg_TypeDef *state);
 static bool SrvDataHub_Get_Attitude(uint32_t *time_stamp, float *pitch, float *roll, float *yaw, float *q0, float *q1, float *q2, float *q3);
 static bool SrvDataHub_Get_VCPAttach_State(bool *state);
 static bool SrvDataHub_Get_CLI_State(bool *state);
@@ -49,13 +45,11 @@ static bool SrvDataHub_Set_Upgrade_State(bool state);
 /* external variable */
 SrvDataHub_TypeDef SrvDataHub = {
     .init = SrvDataHub_Init,
-    .get_sensor_data = SrvDataHub_Get_SensorData,
     .get_attitude = SrvDataHub_Get_Attitude,
     .get_arm_state = SrvDataHub_Get_Arm,
     .get_failsafe = SrvDataHub_Get_Failsafe,
     .get_rc_control_data = SrvDataHub_Get_Telemetry_ControlData,
     .get_actuator = SrvDataHub_Get_Actuator,
-    .get_sensor_init_state = SrvDataHub_Get_Sensor_InitState,
     .get_vcp_attach_state = SrvDataHub_Get_VCPAttach_State,
     .get_cli_state = SrvDataHub_Get_CLI_State,
     .get_upgrade_state = SrvDataHub_Get_Upgrade_State,
@@ -79,12 +73,6 @@ static void SrvDataHub_Init(void)
     Receiver_hub_DataPipe.data_size = DataPipe_DataSize(Hub_Telemetry_Rc);
     Receiver_hub_DataPipe.trans_finish_cb = To_Pipe_TransFinish_Callback(SrvDataHub_PipeRcTelemtryDataFinish_Callback);
     DataPipe_Enable(&Receiver_hub_DataPipe);
-
-    memset(DataPipe_DataObjAddr(Hub_Sensor_Init), 0, DataPipe_DataSize(Hub_Sensor_Init));
-    SensorInitState_hub_DataPipe.data_addr = (uint32_t)DataPipe_DataObjAddr(Hub_Sensor_Init);
-    SensorInitState_hub_DataPipe.data_size = DataPipe_DataSize(Hub_Sensor_Init);
-    SensorInitState_hub_DataPipe.trans_finish_cb = To_Pipe_TransFinish_Callback(SrvDataHub_SensorState_DataPipe_Finish_Callback);
-    DataPipe_Enable(&SensorInitState_hub_DataPipe);
 
     memset(DataPipe_DataObjAddr(Hub_Actuator), 0, DataPipe_DataSize(Hub_Actuator));
     Actuator_hub_DataPipe.data_addr = (uint32_t)DataPipe_DataObjAddr(Hub_Actuator);
@@ -206,34 +194,6 @@ static void SrvDataHub_Actuator_DataPipe_Finish_Callback(DataPipeObj_TypeDef *ob
     }
 }
 
-static void SrvDataHub_Sensor_DataPipe_Finish_Callback(DataPipeObj_TypeDef *obj)
-{
-    if (obj != &Sensor_hub_DataPipe)
-        return;
-        
-    SrvDataHub_Monitor.update_reg.bit.sensor_data = true;
-
-    if (SrvDataHub_Monitor.inuse_reg.bit.sensor_data)
-        SrvDataHub_Monitor.inuse_reg.bit.sensor_data = false;
-
-    memcpy(&SrvDataHub_Monitor.data.sensor_data, DataPipe_DataObjAddr(Hub_SensorData), sizeof(SrvSensorData_TypeDef));
-
-    SrvDataHub_Monitor.update_reg.bit.sensor_data = false;
-}
-
-static void SrvDataHub_SensorState_DataPipe_Finish_Callback(DataPipeObj_TypeDef *obj)
-{
-    if (obj != &SensorInitState_hub_DataPipe)
-        return;
-
-    SrvDataHub_Monitor.update_reg.bit.sensor_init = true;
-    if (SrvDataHub_Monitor.inuse_reg.bit.sensor_init)
-        SrvDataHub_Monitor.inuse_reg.bit.sensor_init = false;
-
-    SrvDataHub_Monitor.data.sensor_init.val = DataPipe_DataObj(Hub_Sensor_Init).val;
-    SrvDataHub_Monitor.update_reg.bit.sensor_init = false;
-}
-
 static void SrvDataHub_PipeRcTelemtryDataFinish_Callback(DataPipeObj_TypeDef *obj)
 {
     if ((!SrvDataHub_Monitor.init_state) || (obj == NULL))
@@ -276,14 +236,6 @@ static void SrvDataHub_PipeConvertControlDataFinish_Callback(DataPipeObj_TypeDef
 
         SrvDataHub_Monitor.update_reg.bit.cnv_control_data = false;
     }
-}
-
-static bool SrvDataHub_Get_SensorData(SrvSensorData_TypeDef *sensor_data)
-{
-    if (sensor_data == NULL)
-        return false;
-
-    return false;
 }
 
 static bool SrvDataHub_Get_RelativeAlt(uint32_t *time_stamp, float *alt, float *alt_speed)
@@ -452,22 +404,6 @@ reupdate_actuator:
         goto reupdate_actuator;
 
     SrvDataHub_Monitor.inuse_reg.bit.actuator = false;
-
-    return true;
-}
-
-static bool SrvDataHub_Get_Sensor_InitState(SrvSensorReg_TypeDef *state)
-{
-reupdate_imu_state:
-    SrvDataHub_Monitor.inuse_reg.bit.sensor_init = true;
-
-    if(state)
-        state->val = SrvDataHub_Monitor.data.sensor_init.val;
-
-    if(!SrvDataHub_Monitor.inuse_reg.bit.sensor_init)
-        goto reupdate_imu_state;
-
-    SrvDataHub_Monitor.inuse_reg.bit.sensor_init = false;
 
     return true;
 }

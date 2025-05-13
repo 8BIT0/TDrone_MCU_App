@@ -1,7 +1,6 @@
 #include "Task_Navi.h"
 #include "DataPipe.h"
 #include "Srv_OsCommon.h"
-#include "Srv_SensorMonitor.h"
 #include "Srv_DataHub.h"
 #include "DataPipe.h"
 #include "MadgwickAHRS.h"

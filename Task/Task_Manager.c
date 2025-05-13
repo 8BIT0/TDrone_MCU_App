@@ -1,7 +1,7 @@
 #include "Task_Manager.h"
-#include "Task_Control.h"
 #include "Task_Telemetry.h"
-#include "Task_Navi.h"
+// #include "Task_Control.h"
+// #include "Task_Navi.h"
 #include "Task_Protocol.h"
 #include "debug_util.h"
 #include "HW_Def.h"
@@ -78,11 +78,11 @@ void Task_Manager_CreateTask(void const *arg)
 
             DataPipe_Init();
             Storage.init(&StorageDevObj);
-            // SrvUpgrade.init();
+            SrvUpgrade.init(NULL);
             SrvComProto.init(SrvComProto_Type_MAV, NULL);
             
             TaskTelemetry_Init(TaskTelemetry_Period_def);
-            TaskControl_Init(TaskControl_Period_Def);
+            // TaskControl_Init(TaskControl_Period_Def);
 
             // TaskBlackBox_Init();
             TaskNavi_Init(TaslNavi_Period_Def);
@@ -91,11 +91,11 @@ void Task_Manager_CreateTask(void const *arg)
             osThreadDef(TelemtryTask, TaskTelemetry_Core, osPriorityHigh, 0, 1024);
             TaskTelemetry_Handle = osThreadCreate(osThread(TelemtryTask), NULL);
 
-            osThreadDef(ControlTask, TaskControl_Core, osPriorityHigh, 0, 1024);
-            TaskControl_Handle = osThreadCreate(osThread(ControlTask), NULL);
+            // osThreadDef(ControlTask, TaskControl_Core, osPriorityHigh, 0, 1024);
+            // TaskControl_Handle = osThreadCreate(osThread(ControlTask), NULL);
 
-            osThreadDef(NavTask, TaskNavi_Core, osPriorityAboveNormal, 0, 1024);
-            TaskNavi_Handle = osThreadCreate(osThread(NavTask), NULL);
+            // osThreadDef(NavTask, TaskNavi_Core, osPriorityAboveNormal, 0, 1024);
+            // TaskNavi_Handle = osThreadCreate(osThread(NavTask), NULL);
 
             // osThreadDef(BlackBoxTask, TaskBlackBox_Core, osPriorityNormal, 0, 4096);
             // TaskLog_Handle = osThreadCreate(osThread(BlackBoxTask), NULL);

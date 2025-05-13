@@ -35,8 +35,8 @@ BUILD_DIR = build
 ######################################
 # C++ source
 CPP_SOURCES = \
-Task/Task_Navi.cpp \
-Algorithm/Navi_Dep/Alt_est.cpp
+# Task/Task_Navi.cpp \
+# Algorithm/Navi_Dep/Alt_est.cpp
 
 # C sources
 C_SOURCES = \
@@ -52,7 +52,6 @@ debug/debug_util.c \
 debug/trace_analysiser.c \
 Task/Task_Telemetry.c \
 Task/Task_Protocol.c \
-Task/Task_Control.c \
 Device/Dev_Led.c \
 Device/Dev_W25Qxx.c \
 Device/Dev_W25Qxx_QSPI.c \
@@ -64,7 +63,6 @@ Service/Srv_Actuator.c \
 Service/Srv_ComProto.c \
 Service/Srv_DataHub.c \
 Service/Srv_OsCommon.c \
-Service/Srv_SensorMonitor.c \
 Service/Srv_Upgrade.c \
 Service/Srv_BlackBox_Chip.c \
 DataStructure/Data_Convert_Util.c \
@@ -149,6 +147,7 @@ HW_Lib/STM32H7/HAL_Lib/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_sdram.c \
 HW_Lib/STM32H7/HAL_Lib/STM32H7xx_HAL_Driver/Src/stm32h7xx_ll_usb.c \
 HW_Lib/STM32H7/PinPort_Def/Neure/HW_Def.c
 # Task/Task_BlackBox.c \
+# Task/Task_Control.c \
 
 # ASM sources
 ASM_SOURCES =  \
