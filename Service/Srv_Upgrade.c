@@ -52,6 +52,7 @@ static void SrvUpgrade_Check_ForceMode_Enable(void *arg);
 
 /* external function */
 static bool SrvUpgrade_Init(SrvUpgrade_Send_Callback tx_cb);
+static void SrvUpgrade_Set_TransCallback(SrvUpgrade_Send_Callback tx_cb);
 static void SrvUpgrade_DealRec(void *com_obj, uint8_t *p_data, uint16_t size);
 static bool SrvUpgrade_DumpFirmware(SrvUpgrade_FirmwareDumpType_List type, void *port, SrvUpgrade_Send_Callback tx_cb);
 
@@ -60,6 +61,7 @@ SrvUpgrade_TypeDef SrvUpgrade = {
     .init = SrvUpgrade_Init,
     .DealRec = SrvUpgrade_DealRec,
     .DumpFirmware = SrvUpgrade_DumpFirmware,
+    .set_trans_callback = SrvUpgrade_Set_TransCallback,
 };
 
 static bool SrvUpgrade_Init(SrvUpgrade_Send_Callback tx_cb)
@@ -129,19 +131,26 @@ static bool SrvUpgrade_Init(SrvUpgrade_Send_Callback tx_cb)
 #if (CODE_TYPE == ON_BOOT)
 static bool SrvUpgrade_Upgrade_Firmware(uint32_t firmware_size)
 {
-    if (!SrvUpgradeObj.init_state || (SrvUpgradeObj.firmware_buf == NULL))
-        return false;
+    uint32_t app_addr = App_Address_Base;
+    uint32_t flash_sector_size = 0;
 
-    /* after firmware loaded */
-    /* clear all data in storage section */
-    if (!StorageFirmware.read_sec(SrvUpgradeObj.firmware_buf, App_Firmware_Size))
+    if (!SrvUpgradeObj.init_state || \
+        (SrvUpgradeObj.firmware_buf == NULL) || \
+        (BspFlash.erase == NULL) || \
+        (BspFlash.write == NULL))
         return false;
 
     /* update firmware to stm32h743 internal flash */
+    if (!StorageFirmware.read_sec(SrvUpgradeObj.firmware_buf, App_Firmware_Size) || \
+        !BspFlash.erase(app_addr, App_Section_Size) || \
+        !BspFlash.write(app_addr, SrvUpgradeObj.firmware_buf, firmware_size))
+        return false;
 
     /* after update clear temporary buff */
     memset(SrvUpgradeObj.firmware_buf, 0, App_Firmware_Size);
 
+    /* after firmware loaded */
+    /* clear all data in storage section */
     return StorageFirmware.erase();
 }
 
@@ -350,12 +359,9 @@ static bool SrvUpgrade_Firmware_Download(void *com_obj, uint8_t *p_data, uint16_
 
     /* Create YMdoem object */
     if (SrvUpgradeObj.YM_hdl == 0)
-        SrvUpgradeObj.YM_hdl = YModem.Init(com_obj, SrvOsCommon.malloc, SrvOsCommon.free, \
-                                           SrvUpgradeObj.send, \
-                                           SrvUpgrade_Firmware_Rec_Start, \
-                                           SrvUpgrade_Firmware_Rec_EOT, \
-                                           SrvUpgrade_Firmware_Rec_Done, \
-                                           SrvUpgrade_Firmware_Rec_Pack);
+        SrvUpgradeObj.YM_hdl = YModem.Init(com_obj, YModem_Dir_Rx, SrvOsCommon.malloc, SrvOsCommon.free, SrvUpgradeObj.send, \
+                                           SrvUpgrade_Firmware_Rec_Start, SrvUpgrade_Firmware_Rec_EOT, \
+                                           SrvUpgrade_Firmware_Rec_Done, SrvUpgrade_Firmware_Rec_Pack);
     
     p_size = Queue.size(SrvUpgradeObj.p_queue);
     if (p_size)
@@ -394,6 +400,11 @@ static void SrvUpgrade_DealRec(void *com_obj, uint8_t *p_data, uint16_t size)
 #endif
 
     SrvUpgradeObj.rec_cnt ++;
+}
+
+static void SrvUpgrade_Set_TransCallback(SrvUpgrade_Send_Callback tx_cb)
+{
+    SrvUpgradeObj.send = tx_cb;
 }
 
 static bool SrvUpgrade_DumpFirmware(SrvUpgrade_FirmwareDumpType_List type, void *port, SrvUpgrade_Send_Callback tx_cb)
