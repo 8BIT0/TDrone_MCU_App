@@ -215,7 +215,8 @@
                 "srv_ledstrip.h": "c",
                 "controller.h": "c",
                 "streambuf": "cpp",
-                "complex": "cpp"
+                "complex": "cpp",
+                "srv_imu.h": "c"
         },
         "C_Cpp.errorSquiggles": "Disabled",
         "cmake.configureOnOpen": false,

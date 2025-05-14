@@ -85,7 +85,7 @@ void Task_Manager_CreateTask(void const *arg)
             // TaskControl_Init(TaskControl_Period_Def);
 
             // TaskBlackBox_Init();
-            TaskNavi_Init(TaslNavi_Period_Def);
+            // TaskNavi_Init(TaslNavi_Period_Def);
             TaskFrameCTL_Init(TaskFrameCTL_Period_Def);
 
             osThreadDef(TelemtryTask, TaskTelemetry_Core, osPriorityHigh, 0, 1024);

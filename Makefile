@@ -59,6 +59,7 @@ Device/Dev_CRSF.c \
 Device/Dev_ICM426xx.c \
 Device/Dev_BMP280.c \
 Service/Srv_Receiver.c \
+Service/Srv_IMU.c \
 Service/Srv_Actuator.c \
 Service/Srv_ComProto.c \
 Service/Srv_DataHub.c \
