@@ -2,6 +2,7 @@
 #include "DataPipe.h"
 #include "Srv_OsCommon.h"
 #include "Srv_DataHub.h"
+#include "Srv_IMU.h"
 #include "DataPipe.h"
 #include "MadgwickAHRS.h"
 #include "Alt_est.h"
@@ -45,7 +46,6 @@ void TaskNavi_Init(uint32_t period)
     memset(&Attitude_smp_DataPipe, 0, sizeof(Attitude_smp_DataPipe));
 
     /* init sample */
-    SrvSensor.init();
     
     /* pipe sensor init state to data hub */
 
@@ -87,33 +87,26 @@ void TaskNavi_Init(uint32_t period)
 void TaskNavi_Core(void const *arg)
 {
     uint32_t sys_time = SrvOsCommon.get_os_ms();
-    SrvSensorReg_TypeDef sensor_state;
     IMUAtt_TypeDef attitude;
     RelMov_TypeDef rel_alt;
     AlgoAttData_TypeDef algo_att;
-    SrvSensorData_TypeDef sensor_data;
 
-    memset(&sensor_data, 0, sizeof(SrvSensorData_TypeDef));
     memset(&attitude, 0, sizeof(IMUAtt_TypeDef));
     MadgwickAHRSInit(&algo_att);
     Matrix<float, 3, 1> EM_GeoAcc; /* eigen matrix geodetic coordinate Acc */
-    sensor_state.val = 0;
 
     while(1)
     {
-        SrvDataHub.get_sensor_init_state(&sensor_state);
-        SrvDataHub.get_sensor_data(&sensor_data);
-        
-        if (!sensor_state.bit.mag)
-            memset(sensor_data.scale_Mag, 0, sizeof(sensor_data.scale_Mag));
+        // if ()
+        //     memset(sensor_data.scale_Mag, 0, sizeof(sensor_data.scale_Mag));
 
-        if(sensor_state.bit.imu)
+        // if()
         {
             /* update Attitude */
-            MadgwickAHRSupdate(&algo_att, \
-                               Deg2Rad(sensor_data.scale_Gyro[Axis_X]), Deg2Rad(sensor_data.scale_Gyro[Axis_Y]), Deg2Rad(sensor_data.scale_Gyro[Axis_Z]), \
-                               sensor_data.scale_Acc[Axis_X],           sensor_data.scale_Acc[Axis_Y],           sensor_data.scale_Acc[Axis_Z], \
-                               sensor_data.scale_Mag[Axis_X],           sensor_data.scale_Mag[Axis_Y],           sensor_data.scale_Mag[Axis_Z]);
+            // MadgwickAHRSupdate(&algo_att, \
+            //                    Deg2Rad(sensor_data.scale_Gyro[Axis_X]), Deg2Rad(sensor_data.scale_Gyro[Axis_Y]), Deg2Rad(sensor_data.scale_Gyro[Axis_Z]), \
+            //                    sensor_data.scale_Acc[Axis_X],           sensor_data.scale_Acc[Axis_Y],           sensor_data.scale_Acc[Axis_Z], \
+            //                    sensor_data.scale_Mag[Axis_X],           sensor_data.scale_Mag[Axis_Y],           sensor_data.scale_Mag[Axis_Z]);
             
             attitude.pitch = algo_att.pitch;
             attitude.roll  = algo_att.roll;
@@ -132,13 +125,13 @@ void TaskNavi_Core(void const *arg)
             DataPipe_SendTo(&Attitude_smp_DataPipe, &Attitude_log_DataPipe);
 
             /* convert body fixed coordinate to geidetic coordinate */
-            EM_GeoAcc = BodyFixAcc_Convert2_GeodeticAcc(attitude.pitch, attitude.roll, attitude.yaw, sensor_data.scale_Acc);
+            // EM_GeoAcc = BodyFixAcc_Convert2_GeodeticAcc(attitude.pitch, attitude.roll, attitude.yaw, sensor_data.scale_Acc);
         }
 
         /* comput baro altitude */
-       if (sensor_state.bit.baro && sensor_state.bit.imu)
+    //    if ()
         {
-            TaskNavi_Update_BaroAltEst(sensor_data.scale_baro, (EM_GeoAcc(2, 0) + 1.0f), &rel_alt);
+            // TaskNavi_Update_BaroAltEst(sensor_data.scale_baro, (EM_GeoAcc(2, 0) + 1.0f), &rel_alt);
 
             DataPipe_DataObj(Navi_Altitude).time = SrvOsCommon.get_os_ms();
             DataPipe_DataObj(Navi_Altitude).pos = rel_alt.pos;

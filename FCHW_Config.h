@@ -15,8 +15,6 @@
 
 #define RADIO_NUM               1
 
-#define Storage_InfoPageSize Flash_Storage_InfoPageSize
-
 /* get virable from .ld file defined */
 extern uint32_t __rom_s;
 extern uint32_t __rom_e;

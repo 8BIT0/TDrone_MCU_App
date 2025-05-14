@@ -102,46 +102,17 @@ void TaskTelemetry_Init(uint32_t period)
     TaskTelemetry_Period = period;
 }
 
-static void Telemetry_blink(bool arm)
-{
-    uint32_t Rt = 0;
-    static uint32_t Lst_Rt = 0;
-    static bool led_state = false;
-    DevLedObj_TypeDef LedObj_tmp;
-    
-    if (Noti_LED_Ptr == NULL)
-        return;
-
-    memcpy(&LedObj_tmp, Noti_LED_Ptr, sizeof(LedObj_tmp));
-
-    /* disarm state */
-    if (!arm)
-    {
-        DevLED.ctl(LedObj_tmp, true);
-        return;
-    }
-
-    Rt = SrvOsCommon.get_os_ms();
-    if ((Rt % 50 == 0) && (Lst_Rt != Rt))
-    {
-        led_state = !led_state;
-        Lst_Rt = Rt;
-    }
-
-    DevLED.ctl(LedObj_tmp, led_state);
-}
-
 void TaskTelemetry_Core(void const *arg)
 {
     uint32_t pre_time = SrvOsCommon.get_os_ms();
-    uint32_t sys_time = 0;
+    // uint32_t sys_time = 0;
     bool upgrade_state = false;
     Telemetry_RCSig_TypeDef RCSig;
     memset(&RCSig, 0, sizeof(Telemetry_RCSig_TypeDef));
 
     while(1)
     {
-        sys_time = SrvOsCommon.get_os_ms();
+        // sys_time = SrvOsCommon.get_os_ms();
 
         if (SrvDataHub.get_upgrade_state(&upgrade_state) && !upgrade_state)
         {
@@ -597,9 +568,6 @@ static bool Telemetry_Bind_Gimbal(uint8_t throttle_ch, uint8_t pitch_ch, uint8_t
 
 static bool Telemetry_Bind_Toggle(uint8_t arm_toggle_ch, uint8_t buzzer_toggle_ch, uint8_t blackbox_toggle_ch)
 {
-    int16_t start = 0;
-    int16_t end = 0;
-    
     /* bind arm toggle */
     if(!Telemetry_BindToggleToChannel(&Telemetry_Monitor.RC_Setting, \
                                       &Receiver_Obj.data.val_list[arm_toggle_ch], \

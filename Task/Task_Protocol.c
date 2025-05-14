@@ -91,7 +91,6 @@ static uint32_t FrameCTL_Period = 0;
 static __attribute__((section(".Perph_Section"))) uint8_t MavShareBuf[1024];
 static __attribute__((section(".Perph_Section"))) uint8_t CLIRxBuf[CLI_FUNC_BUF_SIZE];
 static uint8_t CLIProcBuf[CLI_FUNC_BUF_SIZE];
-static uint8_t CLIPrintBuf[CLI_FUNC_BUF_SIZE];
 static uint8_t Uart_RxBuf_Tmp[PROTO_STREAM_BUF_SIZE];
 static uint8_t USB_RxBuf_Tmp[PROTO_STREAM_BUF_SIZE];
 static uint32_t Radio_Addr = 0;
