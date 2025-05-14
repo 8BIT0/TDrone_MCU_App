@@ -9,13 +9,17 @@ extern "C" {
 #include <stdbool.h>
 #include <string.h>
 
-/* relative move on single axis */
+/* relative move on 3 axis */
 typedef struct
 {
     uint32_t time;
-    float pos;
-    float vel;
-    float acc;
+    float pos_x;
+    float pos_y;
+    float pos_z;
+
+    float vel_x;
+    float vel_y;
+    float vel_z;
 } RelMov_TypeDef;
 
 #ifdef __cplusplus

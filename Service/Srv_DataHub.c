@@ -10,7 +10,6 @@ SrvDataHub_Monitor_TypeDef SrvDataHub_Monitor = {
 /* Pipe Object */
 DataPipe_CreateDataObj(SrvActuatorPipeData_TypeDef, Hub_Actuator);
 DataPipe_CreateDataObj(ControlData_TypeDef, Hub_Telemetry_Rc);
-DataPipe_CreateDataObj(IMUAtt_TypeDef, Hub_Attitude);
 DataPipe_CreateDataObj(RelMov_TypeDef, Hub_Alt);
 DataPipe_CreateDataObj(ExpControlData_TypeDef, Hub_Cnv_CtlData);
 DataPipe_CreateDataObj(bool, Hub_VCP_Attach_State);
@@ -18,9 +17,7 @@ DataPipe_CreateDataObj(bool, Hub_VCP_Attach_State);
 /* internal function */
 static void SrvDataHub_PipeRcTelemtryDataFinish_Callback(DataPipeObj_TypeDef *obj);
 static void SrvDataHub_Actuator_DataPipe_Finish_Callback(DataPipeObj_TypeDef *obj);
-static void SrvDataHub_Attitude_DataPipe_Finish_Callback(DataPipeObj_TypeDef *obj);
 // static void SrvDataHub_Pos_DataPipe_Finish_Callback(DataPipeObj_TypeDef *obj);
-static void SrvDatHub_Alt_DataPipe_Finish_Callback(DataPipeObj_TypeDef *obj);
 static void SrvDataHub_VCPAttach_dataPipe_Finish_Callback(DataPipeObj_TypeDef *obj);
 static void SrvDataHub_PipeConvertControlDataFinish_Callback(DataPipeObj_TypeDef *obj);
 
@@ -77,18 +74,6 @@ static void SrvDataHub_Init(void)
     Actuator_hub_DataPipe.data_size = DataPipe_DataSize(Hub_Actuator);
     Actuator_hub_DataPipe.trans_finish_cb = To_Pipe_TransFinish_Callback(SrvDataHub_Actuator_DataPipe_Finish_Callback);
     DataPipe_Enable(&Actuator_hub_DataPipe);
-    
-    memset(DataPipe_DataObjAddr(Hub_Attitude), 0, DataPipe_DataSize(Hub_Attitude));
-    Attitude_hub_DataPipe.data_addr = (uint32_t)DataPipe_DataObjAddr(Hub_Attitude);
-    Attitude_hub_DataPipe.data_size = DataPipe_DataSize(Hub_Attitude);
-    Attitude_hub_DataPipe.trans_finish_cb = To_Pipe_TransFinish_Callback(SrvDataHub_Attitude_DataPipe_Finish_Callback);
-    DataPipe_Enable(&Attitude_hub_DataPipe);
-
-    memset(DataPipe_DataObjAddr(Hub_Alt), 0, DataPipe_DataSize(Hub_Alt));
-    Altitude_hub_DataPipe.data_addr = (uint32_t)DataPipe_DataObjAddr(Hub_Alt);
-    Altitude_hub_DataPipe.data_size = DataPipe_DataSize(Hub_Alt);
-    Altitude_hub_DataPipe.trans_finish_cb = To_Pipe_TransFinish_Callback(SrvDatHub_Alt_DataPipe_Finish_Callback);
-    DataPipe_Enable(&Altitude_hub_DataPipe);
 
     memset(DataPipe_DataObjAddr(Hub_VCP_Attach_State), 0, DataPipe_DataSize(Hub_VCP_Attach_State));
     VCP_Connect_hub_DataPipe.data_addr = (uint32_t)DataPipe_DataObjAddr(Hub_VCP_Attach_State);
@@ -132,46 +117,6 @@ static void SrvDataHub_VCPAttach_dataPipe_Finish_Callback(DataPipeObj_TypeDef *o
         SrvDataHub_Monitor.data.VCP_Attach = DataPipe_DataObj(Hub_VCP_Attach_State);
 
         SrvDataHub_Monitor.update_reg.bit.USB_VCP_attach = false;
-    }
-}
-
-static void SrvDatHub_Alt_DataPipe_Finish_Callback(DataPipeObj_TypeDef *obj)
-{
-    if (obj == &Altitude_hub_DataPipe)
-    {
-        SrvDataHub_Monitor.update_reg.bit.relative_alt = true;
-
-        if (SrvDataHub_Monitor.inuse_reg.bit.relative_alt)
-            SrvDataHub_Monitor.inuse_reg.bit.relative_alt = false;
-            
-        SrvDataHub_Monitor.data.relative_alt_time = DataPipe_DataObj(Hub_Alt).time;
-        SrvDataHub_Monitor.data.relative_alt = DataPipe_DataObj(Hub_Alt).pos;
-        SrvDataHub_Monitor.data.relative_vertical_speed = DataPipe_DataObj(Hub_Alt).vel;
-
-        SrvDataHub_Monitor.update_reg.bit.relative_alt = false;
-    }
-}
-
-static void SrvDataHub_Attitude_DataPipe_Finish_Callback(DataPipeObj_TypeDef *obj)
-{
-    if(obj == &Attitude_hub_DataPipe)
-    {
-        SrvDataHub_Monitor.update_reg.bit.attitude = true;
-
-        if(SrvDataHub_Monitor.inuse_reg.bit.attitude)
-            SrvDataHub_Monitor.inuse_reg.bit.attitude = false;
-
-        SrvDataHub_Monitor.data.att_update_time = DataPipe_DataObj(Hub_Attitude).time_stamp;
-        SrvDataHub_Monitor.data.att_pitch = DataPipe_DataObj(Hub_Attitude).pitch;
-        SrvDataHub_Monitor.data.att_roll = DataPipe_DataObj(Hub_Attitude).roll;
-        SrvDataHub_Monitor.data.att_yaw = DataPipe_DataObj(Hub_Attitude).yaw;
-        SrvDataHub_Monitor.data.att_q0 = DataPipe_DataObj(Hub_Attitude).q0;
-        SrvDataHub_Monitor.data.att_q1 = DataPipe_DataObj(Hub_Attitude).q1;
-        SrvDataHub_Monitor.data.att_q2 = DataPipe_DataObj(Hub_Attitude).q2;
-        SrvDataHub_Monitor.data.att_q3 = DataPipe_DataObj(Hub_Attitude).q3;
-        SrvDataHub_Monitor.data.att_error_code = DataPipe_DataObj(Hub_Attitude).err_code;
-    
-        SrvDataHub_Monitor.update_reg.bit.attitude = false;
     }
 }
 

@@ -1,7 +1,7 @@
 #include "Task_Manager.h"
 #include "Task_Telemetry.h"
 // #include "Task_Control.h"
-// #include "Task_Navi.h"
+#include "Task_Navi.h"
 #include "Task_Protocol.h"
 #include "debug_util.h"
 #include "HW_Def.h"
@@ -86,22 +86,22 @@ void Task_Manager_CreateTask(void const *arg)
 
             // TaskBlackBox_Init();
             TaskNavi_Init(TaslNavi_Period_Def);
-            TaskFrameCTL_Init(TaskFrameCTL_Period_Def);
+            // TaskFrameCTL_Init(TaskFrameCTL_Period_Def);
 
-            osThreadDef(TelemtryTask, TaskTelemetry_Core, osPriorityHigh, 0, 1024);
-            TaskTelemetry_Handle = osThreadCreate(osThread(TelemtryTask), NULL);
+            // osThreadDef(TelemtryTask, TaskTelemetry_Core, osPriorityHigh, 0, 1024);
+            // TaskTelemetry_Handle = osThreadCreate(osThread(TelemtryTask), NULL);
 
             // osThreadDef(ControlTask, TaskControl_Core, osPriorityHigh, 0, 1024);
             // TaskControl_Handle = osThreadCreate(osThread(ControlTask), NULL);
 
-            // osThreadDef(NavTask, TaskNavi_Core, osPriorityAboveNormal, 0, 1024);
-            // TaskNavi_Handle = osThreadCreate(osThread(NavTask), NULL);
+            osThreadDef(NavTask, TaskNavi_Core, osPriorityAboveNormal, 0, 1024);
+            TaskNavi_Handle = osThreadCreate(osThread(NavTask), NULL);
 
             // osThreadDef(BlackBoxTask, TaskBlackBox_Core, osPriorityNormal, 0, 4096);
             // TaskLog_Handle = osThreadCreate(osThread(BlackBoxTask), NULL);
 
-            osThreadDef(FrameCTLTask, TaskFrameCTL_Core, osPriorityNormal, 0, 1024);
-            TaskFrameCTL_Handle = osThreadCreate(osThread(FrameCTLTask), NULL);
+            // osThreadDef(FrameCTLTask, TaskFrameCTL_Core, osPriorityNormal, 0, 1024);
+            // TaskFrameCTL_Handle = osThreadCreate(osThread(FrameCTLTask), NULL);
 
             init = true;
         }

@@ -61,19 +61,6 @@ typedef struct
     float acc_scale;
     float gyr_scale;
 } IMUModuleScale_TypeDef;
-
-typedef struct
-{
-    uint32_t time_stamp;
-    float pitch;
-    float roll;
-    float yaw;
-    float q0;
-    float q1;
-    float q2;
-    float q3;
-    uint8_t err_code;
-} IMUAtt_TypeDef;
 #pragma pack()
 
 typedef struct
