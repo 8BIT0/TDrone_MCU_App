@@ -17,8 +17,6 @@ DataPipe_CreateDataObj(bool, Hub_VCP_Attach_State);
 
 /* internal function */
 static void SrvDataHub_PipeRcTelemtryDataFinish_Callback(DataPipeObj_TypeDef *obj);
-static void SrvDataHub_SensorState_DataPipe_Finish_Callback(DataPipeObj_TypeDef *obj);
-static void SrvDataHub_Sensor_DataPipe_Finish_Callback(DataPipeObj_TypeDef *obj);
 static void SrvDataHub_Actuator_DataPipe_Finish_Callback(DataPipeObj_TypeDef *obj);
 static void SrvDataHub_Attitude_DataPipe_Finish_Callback(DataPipeObj_TypeDef *obj);
 // static void SrvDataHub_Pos_DataPipe_Finish_Callback(DataPipeObj_TypeDef *obj);

@@ -205,13 +205,9 @@ extern BspGPIO_Obj_TypeDef Uart4_RxPin;
 extern BspGPIO_Obj_TypeDef Uart1_TxPin;
 extern BspGPIO_Obj_TypeDef Uart1_RxPin;
 
-extern BspSPI_PinConfig_TypeDef PriIMU_BusPin;
-extern BspSPI_PinConfig_TypeDef SecIMU_BusPin;
-
 extern BspIIC_PinConfig_TypeDef SrvBaro_BusPin;
 
-extern BspSPI_Config_TypeDef PriIMU_BusCfg;
-extern BspSPI_Config_TypeDef SecIMU_BusCfg;
+extern BspSPI_Config_TypeDef IMU_BusCfg;
 
 extern DebugPrintObj_TypeDef DebugPort;
 

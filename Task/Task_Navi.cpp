@@ -45,10 +45,16 @@ void TaskNavi_Init(uint32_t period)
     /* init DataPipe */
     memset(&Attitude_smp_DataPipe, 0, sizeof(Attitude_smp_DataPipe));
 
-    /* init sample */
-    
-    /* pipe sensor init state to data hub */
+    /* IMU  init */
+    SrvIMU.init();
 
+    /* Baro init */
+
+    /* Mag  init */
+
+    /* Flow init */
+
+    /* pipe sensor init state to data hub */
 
     memset(DataPipe_DataObjAddr(Navi_Attitude), 0, DataPipe_DataSize(Navi_Attitude));
     memset(DataPipe_DataObjAddr(Navi_Altitude), 0, DataPipe_DataSize(Navi_Altitude));

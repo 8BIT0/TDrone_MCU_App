@@ -61,28 +61,6 @@ typedef enum
     SrvIMU_Sample_Over_Angular_Accelerate,
 } SrvIMU_SampleErrorCode_List;
 
-typedef enum
-{
-    SrvIMU_Dev_MPU6000 = 0,
-    SrvIMU_Dev_ICM20602,
-    SrvIMU_Dev_ICM42688P,
-    SrvIMU_Dev_ICM42605,
-    SrvIMU_Dev_None,
-}SrvIMU_SensorID_List;
-
-static inline const char* SrvIMU_Get_TypeStr(SrvIMU_SensorID_List type)
-{
-    switch (type)
-    {
-        case SrvIMU_Dev_MPU6000:    return "MPU6000";
-        case SrvIMU_Dev_ICM20602:   return "ICM20602";
-        case SrvIMU_Dev_ICM42688P:  return "ICM42688P";
-        case SrvIMU_Dev_ICM42605:   return "ICM42605";
-        case SrvIMU_Dev_None:   return "None";
-        default: return "Unknow type";
-    }
-}
-
 typedef struct
 {
     uint8_t Acc;

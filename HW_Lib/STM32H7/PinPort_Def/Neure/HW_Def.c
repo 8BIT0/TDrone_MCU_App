@@ -104,18 +104,6 @@ BspGPIO_Obj_TypeDef Uart1_RxPin = {
     .alternate = GPIO_AF7_USART1,
 };
 
-BspSPI_PinConfig_TypeDef IMU_BusPin = {
-    .pin_Alternate = GPIO_AF5_SPI1,
-
-    .port_clk = IMU_CLK_PORT,
-    .port_miso = IMU_MISO_PORT,
-    .port_mosi = IMU_MOSI_PORT,
-
-    .pin_clk = IMU_CLK_PIN,
-    .pin_miso = IMU_MISO_PIN,
-    .pin_mosi = IMU_MOSI_PIN,
-};
-
 BspIIC_PinConfig_TypeDef SrvBaro_BusPin = {
     .pin_Alternate = GPIO_AF4_I2C2,
     .port_sda = GPIOB,
@@ -135,6 +123,17 @@ BspSPI_Config_TypeDef IMU_BusCfg = {
     .CLKPolarity = SPI_POLARITY_HIGH,
     .CLKPhase = SPI_PHASE_2EDGE,
     .BaudRatePrescaler = SPI_BAUDRATEPRESCALER_4,
+    .Pin = {
+        .pin_Alternate = GPIO_AF5_SPI1,
+
+        .port_clk = IMU_CLK_PORT,
+        .port_miso = IMU_MISO_PORT,
+        .port_mosi = IMU_MOSI_PORT,
+
+        .pin_clk = IMU_CLK_PIN,
+        .pin_miso = IMU_MISO_PIN,
+        .pin_mosi = IMU_MOSI_PIN,
+    }
 };
 
 BspIICObj_TypeDef Baro_BusCfg = {

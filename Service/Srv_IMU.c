@@ -33,7 +33,6 @@ typedef IMU_Error_TypeDef (*SrvIMU_GetError_Callback)(void *obj);
 
 typedef struct
 {
-    SrvIMU_SensorID_List type;
     void *obj_ptr;
     IMUData_TypeDef *OriData_ptr;
 
@@ -201,8 +200,6 @@ static SrvIMU_ErrorCode_List SrvIMU_Init(void)
 
     memset(&IMU_Obj, 0, sizeof(IMU_Obj));
 
-    IMU_Obj.type = SrvIMU_Dev_None;
-
     memset(&IMU_Data, 0, sizeof(IMU_Data));
     memset(&IMU_Data_Lst, 0, sizeof(IMU_Data_Lst));
 
@@ -266,11 +263,9 @@ static SrvIMU_ErrorCode_List SrvIMU_IMU_Init(void)
     if (!BspGPIO.exti_init(IMU_INTPin, SrvIMU_IMU_ExtiCallback))
         return SrvIMU_ExtiPin_Init_Error;
 
-    PriIMU_BusCfg.Pin = PriIMU_BusPin;
-    if (!BspSPI.init(PriIMU_BusCfg, &IMU_Bus_Instance))
+    if (!BspSPI.init(IMU_BusCfg, &IMU_Bus_Instance))
         return SrvIMU_Bus_Init_Error;
 
-    IMU_Obj.type = SrvIMU_Dev_ICM42688P;
     DevICM426xx.pre_init(&ICM42688PObj,
                             SrvIMU_IMU_CS_Ctl,
                             SrvIMU_IMU_BusTrans_Rec,
@@ -279,8 +274,8 @@ static SrvIMU_ErrorCode_List SrvIMU_IMU_Init(void)
 
     DevICM426xx.config(&ICM42688PObj,
                         ICM426xx_SampleRate_1K,
-                        ICM426xx_Acc_16G,
-                        ICM426xx_Gyr_2000DPS);
+                        ICM426xx_Acc_4G,
+                        ICM426xx_Gyr_500DPS);
 
     IMU_Obj.obj_ptr = &ICM42688PObj;
     IMU_Obj.OriData_ptr = &(ICM42688PObj.OriData);
@@ -522,9 +517,6 @@ static bool SrvIMU_Sample(void)
                     }
                 }
 
-                PriIMU_Dir_Tune(IMU_Data.flt_gyr, IMU_Data.flt_acc);
-                PriIMU_Dir_Tune(IMU_Data.org_gyr, IMU_Data.org_acc);
-                 
                 /* unlock */
                 SrvMpu_Update_Reg.sec.Pri_State = false;
                 IMU_Data_Lst = IMU_Data;
