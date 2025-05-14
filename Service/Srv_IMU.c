@@ -316,47 +316,43 @@ static SrvIMU_SampleErrorCode_List SrvIMU_DataCheck(IMUData_TypeDef *data, uint8
     for (uint8_t axis = Axis_X; axis < Axis_Sum; axis++)
     {
         /* over range chack */
-        {
-            /* check acc data range */
-            if (fabs(data->acc_flt[axis]) > Acc_Range_Max)
-                return SrvIMU_Sample_Data_Acc_OverRange;
+        /* check acc data range */
+        if (fabs(data->acc_flt[axis]) > Acc_Range_Max)
+            return SrvIMU_Sample_Data_Acc_OverRange;
 
-            /* check gyr data range */
-            if (fabs(data->gyr_flt[axis]) > Gyr_Range_Max)
-                return SrvIMU_Sample_Data_Gyr_OverRange;
-        }
+        /* check gyr data range */
+        if (fabs(data->gyr_flt[axis]) > Gyr_Range_Max)
+            return SrvIMU_Sample_Data_Gyr_OverRange;
 
         /* blunt data check */
+        if (data->acc_int_lst[axis] != 0)
         {
-            if (data->acc_int_lst[axis] != 0)
+            if ((fabs(data->acc_flt[axis]) <= Acc_Range_Min) && (data->acc_int[axis] == data->acc_int_lst[axis]))
             {
-                if ((fabs(data->acc_flt[axis]) <= Acc_Range_Min) && (data->acc_int[axis] == data->acc_int_lst[axis]))
+                data->acc_blunt_cnt[axis]++;
+
+                if (data->acc_blunt_cnt[axis] >= IMU_BLUNT_SAMPLE_CNT)
                 {
-                    data->acc_blunt_cnt[axis]++;
-
-                    if (data->acc_blunt_cnt[axis] >= IMU_BLUNT_SAMPLE_CNT)
-                    {
-                        return SrvIMU_Sample_Data_Acc_Blunt;
-                    }
+                    return SrvIMU_Sample_Data_Acc_Blunt;
                 }
-                else
-                    data->acc_blunt_cnt[axis] = 0;
             }
+            else
+                data->acc_blunt_cnt[axis] = 0;
+        }
 
-            if (data->gyr_int_lst[axis] != 0)
+        if (data->gyr_int_lst[axis] != 0)
+        {
+            if ((fabs(data->gyr_flt[axis]) <= Gyr_Range_Min) && (data->gyr_int[axis] == data->gyr_int_lst[axis]))
             {
-                if ((fabs(data->gyr_flt[axis]) <= Gyr_Range_Min) && (data->gyr_int[axis] == data->gyr_int_lst[axis]))
-                {
-                    data->gyr_blunt_cnt[axis]++;
+                data->gyr_blunt_cnt[axis]++;
 
-                    if (data->gyr_blunt_cnt[axis] >= IMU_BLUNT_SAMPLE_CNT)
-                    {
-                        return SrvIMU_Sample_Data_Gyr_Blunt;
-                    }
+                if (data->gyr_blunt_cnt[axis] >= IMU_BLUNT_SAMPLE_CNT)
+                {
+                    return SrvIMU_Sample_Data_Gyr_Blunt;
                 }
-                else
-                    data->gyr_blunt_cnt[axis] = 0;
             }
+            else
+                data->gyr_blunt_cnt[axis] = 0;
         }
     }
 
