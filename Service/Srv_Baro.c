@@ -18,8 +18,8 @@ typedef struct
     bool init_state;
     uint32_t unready_cnt;
     uint32_t blunt_cnt;
-    SrvBaroData_TypeDef cur_data;
-    SrvBaroData_TypeDef lst_data;
+    SrvBaro_Data_TypeDef cur_data;
+    SrvBaro_Data_TypeDef lst_data;
 } SrvBaroObj_TypeDef;
 
 /* internal variable */
@@ -36,7 +36,7 @@ static void SrvBaro_DataCheck(void);
 /* external function */
 static bool SrvBaro_Init(void);
 static bool SrvBaro_Sample(void);
-static SrvBaroData_TypeDef SrvBaro_GetData(void);
+static bool SrvBaro_GetData(SrvBaro_Data_TypeDef *data);
 
 SrvBaro_TypeDef SrvBaro = {
     .init   = SrvBaro_Init,
@@ -54,8 +54,9 @@ static bool SrvBaro_Init(void)
     /* module init */
     DevBMP280Obj.delay_ms = SrvOsCommon.delay_ms;
     DevBMP280Obj.get_tick = SrvOsCommon.get_os_ms;
-    DevBMP280Obj.bus_rx   = BaroBus.read;
-    DevBMP280Obj.bus_tx   = BaroBus.write;
+    DevBMP280Obj.bus_obj  = (void *)&Baro_BusCfg;
+    DevBMP280Obj.bus_rx   = (DevBMP280_IIC_Read)BaroBus.read;
+    DevBMP280Obj.bus_tx   = (DevBMP280_IIC_Write)BaroBus.write;
     state &= DevBMP280.init(&DevBMP280Obj);
 
     SrvBaroObj.init_state = state;
@@ -115,7 +116,11 @@ static void SrvBaro_DataCheck(void)
         SrvBaroObj.cur_data.err.bit.unready = true;
 }
 
-static SrvBaroData_TypeDef SrvBaro_GetData(void)
+static bool SrvBaro_GetData(SrvBaro_Data_TypeDef *data)
 {
-    return SrvBaroObj.cur_data;
+    if ((SrvBaroObj.init_state == false) || (data == NULL))
+        return false;
+
+    memcpy(data, &SrvBaroObj.cur_data, sizeof(SrvBaro_Data_TypeDef));
+    return true;
 }

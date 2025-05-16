@@ -28,13 +28,13 @@ typedef struct
     float pres;             /* unit: pa  */
     float temperature;      /* unit: deg */
     SrvBaroErr_TypeDef err;
-} SrvBaroData_TypeDef;
+} SrvBaro_Data_TypeDef;
 
 typedef struct
 {
     bool (*init)(void);
     bool (*sample)(void);
-    SrvBaroData_TypeDef (*get)(void);
+    bool (*get)(SrvBaro_Data_TypeDef *data);
 } SrvBaro_TypeDef;
 
 extern SrvBaro_TypeDef SrvBaro;

@@ -152,13 +152,20 @@ static Matrix<float, 3, 1> BodyFixAcc_Convert2_GeodeticAcc(float pitch, float ro
 
 static void TaskNavi_Module_Sample(uint32_t sys_time)
 {
+    TaskNavi_Monitor.sample_state.val = 0;
+    SrvIMU_Data_TypeDef imu_data;
+    SrvBaro_Data_TypeDef baro_data;
+
+    memset(&imu_data, 0, sizeof(SrvIMU_Data_TypeDef));
+    memset(&baro_data, 0, sizeof(SrvBaro_Data_TypeDef));
+
     /* sample imu */
-    if (TaskNavi_ModuleSample_Trigger(sys_time, &TaskNavi_Monitor.imu_sampled_time, TaskNavi_Monitor.imu_sample_period))
-        TaskNavi_Monitor.sample_state.bit.imu = SrvIMU.sample();
+    if (TaskNavi_ModuleSample_Trigger(sys_time, &TaskNavi_Monitor.imu_sampled_time, TaskNavi_Monitor.imu_sample_period) && SrvIMU.sample())
+        TaskNavi_Monitor.sample_state.bit.imu = SrvIMU.get(&imu_data);
 
     /* sample baro */
-    if (TaskNavi_ModuleSample_Trigger(sys_time, &TaskNavi_Monitor.baro_sampled_time, TaskNavi_Monitor.baro_sample_period))
-        TaskNavi_Monitor.sample_state.bit.baro = SrvBaro.sample();
+    if (TaskNavi_ModuleSample_Trigger(sys_time, &TaskNavi_Monitor.baro_sampled_time, TaskNavi_Monitor.baro_sample_period) && SrvBaro.sample())
+        TaskNavi_Monitor.sample_state.bit.baro = SrvBaro.get(&baro_data);
 
     /* sample mag */
 

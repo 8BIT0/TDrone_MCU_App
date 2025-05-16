@@ -184,7 +184,7 @@ static bool SrvIMU_Detect_AngularOverSpeed(float angular_speed, float lst_angula
 SrvIMU_TypeDef SrvIMU = {
     .init = SrvIMU_Init,
     .sample = SrvIMU_Sample,
-    .get_data = SrvIMU_Get_Data,
+    .get = SrvIMU_Get_Data,
     .get_range = SrvIMU_Get_Range,
     .error_proc = SrvIMU_ErrorProc,
     .get_max_angular_speed_diff = SrvIMU_Get_MaxAngularSpeed_Diff,

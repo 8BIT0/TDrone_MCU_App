@@ -93,8 +93,8 @@ typedef enum
 typedef uint32_t (*DevBMP280_Get_Tick)(void);
 typedef void (*DevBMP280_Delay_Ms)(uint32_t ms);
 
-typedef bool (*DevBMP280_IIC_Write)(uint16_t dev_addr, uint16_t reg_addr, uint8_t *p_data, uint16_t len);
-typedef bool (*DevBMP280_IIC_Read)(uint16_t dev_addr, uint16_t reg_addr, uint8_t *p_data, uint16_t len);
+typedef bool (*DevBMP280_IIC_Write)(void *bus_obj, uint16_t dev_addr, uint16_t reg_addr, uint8_t *p_data, uint16_t len);
+typedef bool (*DevBMP280_IIC_Read)(void *bus_obj, uint16_t dev_addr, uint16_t reg_addr, uint8_t *p_data, uint16_t len);
 
 typedef struct
 {
@@ -134,6 +134,7 @@ typedef struct
 
     /* IIC section */
     uint8_t DevAddr;
+    void *bus_obj;
     DevBMP280_IIC_Write bus_tx;
     DevBMP280_IIC_Read bus_rx;
 } DevBMP280Obj_TypeDef;

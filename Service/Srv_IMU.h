@@ -111,7 +111,7 @@ typedef struct
 {
     SrvIMU_ErrorCode_List (*init)(void);
     bool (*sample)(void);
-    bool (*get_data)(SrvIMU_Data_TypeDef *data);
+    bool (*get)(SrvIMU_Data_TypeDef *data);
     bool (*get_range)(SrvIMU_Range_TypeDef *range);
     float (*get_max_angular_speed_diff)(void);
     void (*error_proc)(void);
