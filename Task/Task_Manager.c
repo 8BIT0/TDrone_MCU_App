@@ -105,7 +105,7 @@ void Task_Manager_CreateTask(void const *arg)
             // osThreadDef(FrameCTLTask, TaskFrameCTL_Core, osPriorityNormal, 0, 1024);
             // TaskFrameCTL_Handle = osThreadCreate(osThread(FrameCTLTask), NULL);
             xTaskResumeAll();
-            
+
             init = true;
         }
 
