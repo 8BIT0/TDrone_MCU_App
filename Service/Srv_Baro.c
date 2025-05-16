@@ -242,26 +242,26 @@ static bool SrvBaro_Get_Date(SrvBaro_Data_TypeDef *data)
 {
     float alt = 0.0f;
 
-    if ((SrvBaroObj.init_err == SrvBaro_Error_None) && data && SrvBaroObj.sensor_data && SrvBaroObj.data_size && ToBMP280_API(SrvBaroObj.sensor_api)->ready(ToBMP280_OBJ(SrvBaroObj.sensor_obj)))
-    {
-        memset(SrvBaroObj.sensor_data, 0, BMP280_DataSize);
-        *ToBMP280_DataPtr(SrvBaroObj.sensor_data) = ToBMP280_API(SrvBaroObj.sensor_api)->get_data(ToBMP280_OBJ(SrvBaroObj.sensor_obj));
-        
-        /* convert baro pressure to meter */
-        alt = SrvBaro_PessureCnvToMeter(ToBMP280_DataPtr(SrvBaroObj.sensor_data)->scaled_press);
+    if ((SrvBaroObj.init_err != SrvBaro_Error_None) || \
+        (data == NULL) || (SrvBaroObj.sensor_data == NULL) || (SrvBaroObj.data_size == 0) || \
+        !ToBMP280_API(SrvBaroObj.sensor_api)->ready(ToBMP280_OBJ(SrvBaroObj.sensor_obj)))
+        return false;
+    
+    memset(SrvBaroObj.sensor_data, 0, BMP280_DataSize);
+    *ToBMP280_DataPtr(SrvBaroObj.sensor_data) = ToBMP280_API(SrvBaroObj.sensor_api)->get_data(ToBMP280_OBJ(SrvBaroObj.sensor_obj));
+    
+    /* convert baro pressure to meter */
+    alt = SrvBaro_PessureCnvToMeter(ToBMP280_DataPtr(SrvBaroObj.sensor_data)->scaled_press);
 
-        data->time_stamp = ToBMP280_DataPtr(SrvBaroObj.sensor_data)->time_stamp;
-        data->alt_offset = SrvBaroObj.alt_offset;
-        data->alt = alt - SrvBaroObj.alt_offset;
-        data->tempra = ToBMP280_DataPtr(SrvBaroObj.sensor_data)->scaled_tempra;
-        data->pressure = ToBMP280_DataPtr(SrvBaroObj.sensor_data)->scaled_press;
+    data->time_stamp = ToBMP280_DataPtr(SrvBaroObj.sensor_data)->time_stamp;
+    data->alt_offset = SrvBaroObj.alt_offset;
+    data->alt = alt - SrvBaroObj.alt_offset;
+    data->tempra = ToBMP280_DataPtr(SrvBaroObj.sensor_data)->scaled_tempra;
+    data->pressure = ToBMP280_DataPtr(SrvBaroObj.sensor_data)->scaled_press;
 
-        /* doing baro filter */
-        data->alt = SmoothWindow.update(SrvBaroObj.smoothwindow_filter_hdl, data->alt);
-        return true;
-    }
-
-    return false;
+    /* doing baro filter */
+    data->alt = SmoothWindow.update(SrvBaroObj.smoothwindow_filter_hdl, data->alt);
+    return true;
 }
 
 /*************************************************************** Error Process Callback *******************************************************************************/
