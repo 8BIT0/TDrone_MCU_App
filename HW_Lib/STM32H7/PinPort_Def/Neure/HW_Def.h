@@ -205,8 +205,6 @@ extern BspGPIO_Obj_TypeDef Uart4_RxPin;
 extern BspGPIO_Obj_TypeDef Uart1_TxPin;
 extern BspGPIO_Obj_TypeDef Uart1_RxPin;
 
-extern BspIIC_PinConfig_TypeDef SrvBaro_BusPin;
-
 extern BspSPI_Config_TypeDef IMU_BusCfg;
 
 extern DebugPrintObj_TypeDef DebugPort;
@@ -216,14 +214,10 @@ extern DebugPrintObj_TypeDef DebugPort;
 
 #define Select_Hardware "Hardware NEURE"
 
-#define BARO_TYPE Baro_Type_BMP280
-#define BARO_BUS_TYPE SrvBaro_Bus_SPI
+#define BaroBus BspIIC
 #define Sample_Blinkly Led1
 #define Noti_LED_Ptr NULL
 #define BlackBox_Noti_Ptr NULL
-
-extern SPI_HandleTypeDef Baro_Bus_Instance;
-extern BspGPIO_Obj_TypeDef *p_Baro_CS;
 
 #ifdef __cplusplus
 }

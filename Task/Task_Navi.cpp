@@ -3,6 +3,7 @@
 #include "Srv_OsCommon.h"
 #include "Srv_DataHub.h"
 #include "Srv_IMU.h"
+#include "Srv_Baro.h"
 #include "DataPipe.h"
 #include "MadgwickAHRS.h"
 #include "Alt_est.h"
@@ -17,6 +18,11 @@
 #define NAVI_TAG " "
 #define NAVI_INFO(fmt, ...) Debug_Print(&DebugPort, NAVI_TAG, fmt, ##__VA_ARGS__)
 
+#define BARO_SAMPLE_RATE 200    /* unit: Hz */
+#define MAG_SAMPLE_RATE  200    /* unit: Hz */
+#define FLOW_SAMPLE_RATE 50     /* unit: Hz */
+#define TOF_SAMPLE_RATE  100    /* unit: Hz */
+
 using namespace std;
 using namespace Eigen;
 
@@ -28,8 +34,10 @@ using namespace Eigen;
 */
 
 /* internal function */
+static void TaskNavi_Module_Sample(uint32_t sys_time);
 static void TaskNavi_Update_BaroAltEst(float baro, float acc_dif, RelMov_TypeDef *baro_alt);
 static Matrix<float, 3, 1> BodyFixAcc_Convert2_GeodeticAcc(float pitch, float roll, float yaw, float *acc);
+static bool TaskNavi_ModuleSample_Trigger(uint32_t sys_time, uint32_t *sample_time, uint32_t period);
 
 /* internal vriable */
 TaskNavi_Monitor_TypeDef TaskNavi_Monitor;
@@ -38,25 +46,33 @@ TaskNavi_Monitor_TypeDef TaskNavi_Monitor;
 
 void TaskNavi_Init(uint32_t period)
 {
+    TaskNavi_Monitor.max_sample_period = (1000 / period);
+    TaskNavi_Monitor.period = period;
+    
+    memset(&Attitude_smp_DataPipe, 0, sizeof(Attitude_smp_DataPipe));
     memset(&TaskNavi_Monitor, 0, sizeof(TaskNavi_Monitor_TypeDef));
 
-    /* init DataPipe */
-    memset(&Attitude_smp_DataPipe, 0, sizeof(Attitude_smp_DataPipe));
-
     /* IMU  init */
-    SrvIMU.init();
+    TaskNavi_Monitor.init_state.bit.imu = SrvIMU.init();
+    TaskNavi_Monitor.imu_sample_period = TaskNavi_Monitor.max_sample_period;
 
     /* Baro init */
+    TaskNavi_Monitor.init_state.bit.baro = SrvBaro.init();
+    TaskNavi_Monitor.baro_sample_period = (uint32_t)(1000 / BARO_SAMPLE_RATE);
 
     /* Mag  init */
+    TaskNavi_Monitor.init_state.bit.mag = false;
+    TaskNavi_Monitor.mag_sample_period = (uint32_t)(1000 / MAG_SAMPLE_RATE);
 
     /* Flow init */
+    TaskNavi_Monitor.init_state.bit.flow = false;
+    TaskNavi_Monitor.flow_sample_period = (uint32_t)(1000 / FLOW_SAMPLE_RATE);
 
     /* ToF  init */
+    TaskNavi_Monitor.init_state.bit.tof = false;
+    TaskNavi_Monitor.tof_sample_period = (uint32_t)(1000 / TOF_SAMPLE_RATE);
 
     /* pipe sensor init state to data hub */
-
-    TaskNavi_Monitor.period = period;
 
     /* eigen test */
     Matrix<float, 2, 3> matrix_23;
@@ -81,7 +97,8 @@ void TaskNavi_Init(uint32_t period)
 
 void TaskNavi_Core(void const *arg)
 {
-    uint32_t sys_time = SrvOsCommon.get_os_ms();
+    uint32_t prv_time = SrvOsCommon.get_os_ms();
+    uint32_t sys_time = 0;
     RelMov_TypeDef rel_alt;
     AlgoAttData_TypeDef algo_att;
 
@@ -90,10 +107,13 @@ void TaskNavi_Core(void const *arg)
 
     while(1)
     {
+        sys_time = SrvOsCommon.get_os_ms();
 
+        /* sample sensor */
+        TaskNavi_Module_Sample(sys_time);
 
         /* check imu data update freq on test */
-        SrvOsCommon.precise_delay(&sys_time, TaskNavi_Monitor.period);
+        SrvOsCommon.precise_delay(&prv_time, TaskNavi_Monitor.period);
     }
 }
 
@@ -130,6 +150,33 @@ static Matrix<float, 3, 1> BodyFixAcc_Convert2_GeodeticAcc(float pitch, float ro
     return tmp;
 }
 
-static void TaskNavi_Module_Sample(void)
+static void TaskNavi_Module_Sample(uint32_t sys_time)
 {
+    /* sample imu */
+    if (TaskNavi_ModuleSample_Trigger(sys_time, &TaskNavi_Monitor.imu_sampled_time, TaskNavi_Monitor.imu_sample_period))
+        TaskNavi_Monitor.sample_state.bit.imu = SrvIMU.sample();
+
+    /* sample baro */
+    if (TaskNavi_ModuleSample_Trigger(sys_time, &TaskNavi_Monitor.baro_sampled_time, TaskNavi_Monitor.baro_sample_period))
+        TaskNavi_Monitor.sample_state.bit.baro = SrvBaro.sample();
+
+    /* sample mag */
+
+    /* sample ToF */
+
+    /* sample Optical Flow */
+}
+
+static bool TaskNavi_ModuleSample_Trigger(uint32_t sys_time, uint32_t *sample_time, uint32_t period)
+{
+    if (sample_time == NULL)
+        return false;
+
+    if ((*sample_time == 0) || (sys_time >= *sample_time))
+    {
+        *sample_time = sys_time + period;
+        return true;
+    }
+
+    return false;
 }

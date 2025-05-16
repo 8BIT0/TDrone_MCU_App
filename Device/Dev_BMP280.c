@@ -41,6 +41,7 @@ static bool DevBMP280_Init(DevBMP280Obj_TypeDef *obj)
         }
 
         obj->ErrorCode = DevBMP280_Error_None;
+        obj->DevAddr = BMP280_ADDR_1;
 
         /* check id first */
         if (!DevBMP280_Check_ModuleID(obj))
@@ -332,20 +333,11 @@ static bool DevBMP280_SoftReset(DevBMP280Obj_TypeDef *obj)
     uint8_t reg = DevBMP280_Write_Mask(BMP280_REG_RESET);
     uint8_t dummy_data = 0;
 
-    if (obj && obj->delay_ms)
+    if (obj && obj->delay_ms && obj->bus_tx)
     {
-        if (obj->send)
-        {
-            obj->send(&reg, sizeof(reg));
-            obj->delay_ms(10);
-            return true;
-        }
-        else if (obj->bus_tx)
-        {
-            obj->bus_tx(obj->DevAddr, reg, &dummy_data, 1);
-            obj->delay_ms(10);
-            return true;
-        }
+        obj->bus_tx(obj->DevAddr, reg, &dummy_data, 1);
+        obj->delay_ms(10);
+        return true;
     }
 
     return false;
@@ -396,9 +388,6 @@ static bool DevBMP280_Calibration(DevBMP280Obj_TypeDef *obj)
 
     if (obj)
     {
-        if (obj->trans == NULL)
-            return false;
-
         /* get param t1 */
         state = DevBMP280_Register_Read(obj, BMP280_REG_NVM_PAR_T1_L, rx_tmp, sizeof(rx_tmp));
         if (state == 0)
@@ -579,61 +568,18 @@ static uint16_t DevBMP280_Register_Read(DevBMP280Obj_TypeDef *obj, uint8_t reg, 
 {
     uint16_t state = 0;
 
-    if (obj && p_buf)
-    {
-        if (obj->trans)
-        {
-            if (len >= 64)
-                return 0;
-
-            uint8_t tx_tmp[64] = {0};
-            uint8_t rx_tmp[64] = {0};
-
-            /* spi communicate */
-            tx_tmp[0] = DevBMP280_Read_Mask(reg);
-            state = obj->trans(tx_tmp, rx_tmp, (len + 1));
-
-            memset(p_buf, 0, len);
-            if (state)
-                memcpy(p_buf, &rx_tmp[1], len);
-        }
-        else if (obj->bus_rx)
-        {
-            /* iic communicate */
-            state = (uint16_t)obj->bus_rx(obj->DevAddr, DevBMP280_Read_Mask(reg), p_buf, len);
-        }
-
-        return state;
-    }
+    if (obj && p_buf && len && obj->bus_rx)
+        /* iic communicate */
+       return (uint16_t)obj->bus_rx(obj->DevAddr, DevBMP280_Read_Mask(reg), p_buf, len);
 
     return 0;
 }
 
 static uint16_t DevBMP280_Register_Write(DevBMP280Obj_TypeDef *obj, uint8_t reg, uint8_t p_buf)
 {
-    uint16_t state = 0;
-    
-    if (obj)
-    {
-        if (obj->trans)
-        {
-            uint8_t tx_tmp[2] = {0};
-            uint8_t rx_tmp[2] = {0};
-            
-            /* spi communicate */
-            tx_tmp[0] = DevBMP280_Write_Mask(reg);
-            tx_tmp[1] = p_buf;
-
-            state = obj->trans(tx_tmp, rx_tmp, sizeof(tx_tmp));
-        }
-        else if (obj->bus_tx)
-        {
-            /* spi communicate */
-            state = (uint16_t)obj->bus_tx(obj->DevAddr, DevBMP280_Write_Mask(reg), &p_buf, 1);
-        }
-
-        return state;
-    }
+    if (obj && obj->bus_tx)
+        /* iic communicate */
+        return (uint16_t)obj->bus_tx(obj->DevAddr, DevBMP280_Write_Mask(reg), &p_buf, 1);
 
     return 0;
 }

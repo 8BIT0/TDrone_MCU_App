@@ -9,11 +9,15 @@ typedef struct
 {
     uint32_t time_stamp;
 
-    int32_t raw_pres;
-    int16_t raw_temp;
+    /* set if have */
+    int32_t raw_i_pres;
+    int16_t raw_i_temp;
+
+    /* set if have */
+    float raw_f_pres;
+    float raw_f_temp;
 
     float pressure;
-    float baro_alt;
     float temp;
 } BaroData_TypeDef;
 

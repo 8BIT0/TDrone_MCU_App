@@ -216,7 +216,8 @@
                 "controller.h": "c",
                 "streambuf": "cpp",
                 "complex": "cpp",
-                "srv_imu.h": "c"
+                "srv_imu.h": "c",
+                "memory": "c"
         },
         "C_Cpp.errorSquiggles": "Disabled",
         "cmake.configureOnOpen": false,

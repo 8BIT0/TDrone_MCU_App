@@ -9,11 +9,32 @@ extern "C" {
 #include <string.h>
 #include <stdbool.h>
 
+typedef union
+{
+    uint8_t val;
+
+    struct
+    {
+        uint8_t init    : 1;
+        uint8_t meas    : 1;
+        uint8_t unready : 1;
+        uint8_t res     : 5;
+    } bit;
+} SrvBaroErr_TypeDef;
+
+typedef struct
+{
+    uint32_t time_stamp;
+    float pres;             /* unit: pa  */
+    float temperature;      /* unit: deg */
+    SrvBaroErr_TypeDef err;
+} SrvBaroData_TypeDef;
+
 typedef struct
 {
     bool (*init)(void);
     bool (*sample)(void);
-    void (*get)(void);
+    SrvBaroData_TypeDef (*get)(void);
 } SrvBaro_TypeDef;
 
 extern SrvBaro_TypeDef SrvBaro;

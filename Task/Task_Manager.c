@@ -18,7 +18,7 @@
 #define TaskControl_Period_Def   20 /* unit: ms period 5ms  50Hz */
 #define TaskTelemetry_Period_def 2  /* unit: ms period 2ms  500Hz */
 #define TaslLog_Period_Def       5  /* unit: ms period 5ms  200Hz */
-#define TaslNavi_Period_Def      5  /* unit: ms period 10ms 200Hz */
+#define TaslNavi_Period_Def      2  /* unit: ms period 10ms 500Hz */
 #define TaskFrameCTL_Period_Def  5  /* unit: ms period 5ms  200Hz */
 
 osThreadId TaskControl_Handle = NULL;
@@ -94,7 +94,7 @@ void Task_Manager_CreateTask(void const *arg)
             // osThreadDef(ControlTask, TaskControl_Core, osPriorityHigh, 0, 1024);
             // TaskControl_Handle = osThreadCreate(osThread(ControlTask), NULL);
 
-            osThreadDef(NavTask, TaskNavi_Core, osPriorityAboveNormal, 0, 1024);
+            osThreadDef(NavTask, TaskNavi_Core, osPriorityRealtime, 0, 4096);
             TaskNavi_Handle = osThreadCreate(osThread(NavTask), NULL);
 
             // osThreadDef(BlackBoxTask, TaskBlackBox_Core, osPriorityNormal, 0, 4096);
