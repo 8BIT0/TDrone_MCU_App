@@ -18,7 +18,7 @@
 #define TaskControl_Period_Def   20 /* unit: ms period 5ms  50Hz */
 #define TaskTelemetry_Period_def 2  /* unit: ms period 2ms  500Hz */
 #define TaslLog_Period_Def       5  /* unit: ms period 5ms  200Hz */
-#define TaslNavi_Period_Def      2  /* unit: ms period 10ms 500Hz */
+#define TaslNavi_Period_Def      5  /* unit: ms period 10ms 200Hz */
 #define TaskFrameCTL_Period_Def  5  /* unit: ms period 5ms  200Hz */
 
 osThreadId TaskControl_Handle = NULL;
