@@ -60,7 +60,8 @@ void Task_Manager_CreateTask(void const *arg)
 
     SYS_INFO("%s\r\n", Select_Hardware);
     SYS_INFO("Hardware Version %d.%d.%d\r\n", HWVer[0], HWVer[1], HWVer[2]);
-    
+    SYS_INFO("App", "Start");
+
     StorageDevObj.chip_type = Flash_Chip_Type;
 #if (FLASH_CHIP_STATE == Storage_ChipBus_Spi)
     StorageDevObj.api = (void *)&DevW25Qxx;
@@ -88,6 +89,7 @@ void Task_Manager_CreateTask(void const *arg)
             TaskNavi_Init(TaslNavi_Period_Def);
             // TaskFrameCTL_Init(TaskFrameCTL_Period_Def);
 
+            vTaskSuspendAll();
             // osThreadDef(TelemtryTask, TaskTelemetry_Core, osPriorityHigh, 0, 1024);
             // TaskTelemetry_Handle = osThreadCreate(osThread(TelemtryTask), NULL);
 
@@ -102,7 +104,8 @@ void Task_Manager_CreateTask(void const *arg)
 
             // osThreadDef(FrameCTLTask, TaskFrameCTL_Core, osPriorityNormal, 0, 1024);
             // TaskFrameCTL_Handle = osThreadCreate(osThread(FrameCTLTask), NULL);
-
+            xTaskResumeAll();
+            
             init = true;
         }
 
