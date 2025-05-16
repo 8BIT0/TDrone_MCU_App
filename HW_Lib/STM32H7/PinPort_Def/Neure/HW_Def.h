@@ -37,7 +37,7 @@ extern const uint8_t HWVer[3];
 #define IMU_SPI_BUS SPI1
 
 #define IMU_CS_PORT GPIOC
-#define IMU_CS_PIN GPIO_PIN_15
+#define IMU_CS_PIN GPIO_PIN_10
 
 #define IMU_INT_PORT GPIOB
 #define IMU_INT_PIN GPIO_PIN_2
@@ -50,30 +50,6 @@ extern const uint8_t HWVer[3];
 
 #define IMU_MOSI_PORT GPIOD
 #define IMU_MOSI_PIN GPIO_PIN_7
-
-/* QSPI Port */
-#define QSPI_CLK_PORT GPIOB
-#define QSPI_NCS_PORT GPIOB
-#define QSPI_BK_IO0_PORT GPIOD
-#define QSPI_BK_IO1_PORT GPIOD
-#define QSPI_BK_IO2_PORT GPIOE
-#define QSPI_BK_IO3_PORT GPIOD
-
-/* QSPI PIN */
-#define QSPI_CLK_PIN GPIO_PIN_2
-#define QSPI_NCS_PIN GPIO_PIN_6
-#define QSPI_BK_IO0_PIN GPIO_PIN_11
-#define QSPI_BK_IO1_PIN GPIO_PIN_12
-#define QSPI_BK_IO2_PIN GPIO_PIN_2
-#define QSPI_BK_IO3_PIN GPIO_PIN_13
-
-/* QSPI Alternate */
-#define QSPI_CLK_Alt GPIO_AF9_QUADSPI
-#define QSPI_NCS_ALT GPIO_AF10_QUADSPI
-#define QSPI_BK_IO0_ALT GPIO_AF9_QUADSPI
-#define QSPI_BK_IO1_ALT GPIO_AF9_QUADSPI
-#define QSPI_BK_IO2_ALT GPIO_AF9_QUADSPI
-#define QSPI_BK_IO3_ALT GPIO_AF9_QUADSPI
 
 /* Baro IIC Pin */
 #define BARO_BUS  BspIIC_Instance_I2C_2
@@ -144,8 +120,7 @@ extern BspIICObj_TypeDef Baro_BusCfg;
 #define CRSF_PIN_SWAP false
 
 /* radio uart */
-// #define RADIO_PORT USART1
-#define RADIO_PORT NULL
+#define RADIO_PORT USART1
 
 #define RADIO_TX_PIN UART1_TX_PIN
 #define RADIO_RX_PIN UART1_RX_PIN
