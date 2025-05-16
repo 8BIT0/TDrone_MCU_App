@@ -21,8 +21,6 @@ extern const uint8_t HWVer[3];
 #define LED1_PIN GPIO_PIN_7
 #define LED1_PORT GPIOH
 
-#define Baro_SPI_BUS NULL
-
 /* SPI3 Reserve SPI */
 #define RESERVE_SPI_CLK_PORT GPIOB
 #define RESERVE_SPI_CLK_PIN GPIO_PIN_3
@@ -58,6 +56,7 @@ extern const uint8_t HWVer[3];
 #define IIC2_SCK_PORT GPIOB
 #define IIC2_SCK_PIN GPIO_PIN_10
 
+#define BaroBus_Handle_Size I2C_HandleType_Size
 extern BspIICObj_TypeDef Baro_BusCfg;
 
 /* Serial Pin */
