@@ -99,10 +99,22 @@ static bool BspSPI_PinInit(BspSPI_PinConfig_TypeDef pin_cfg)
 
 static bool BspSPI_NormalMode_Init(BspSPI_Config_TypeDef spi_cfg, void *spi_instance)
 {
+    RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
     SPI_HandleTypeDef SPI_InitStructure;
+    static bool first_load = true;
 
     if(spi_instance == NULL)
         return false;
+
+    if (first_load)
+    {
+        PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_SPI3 | RCC_PERIPHCLK_SPI2 | RCC_PERIPHCLK_SPI1;
+        PeriphClkInitStruct.Spi123ClockSelection = RCC_SPI123CLKSOURCE_PLL2;
+        if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
+            return false;
+            
+        first_load = false;
+    }
 
     if (spi_cfg.Instance == SPI1)
     {
@@ -116,18 +128,14 @@ static bool BspSPI_NormalMode_Init(BspSPI_Config_TypeDef spi_cfg, void *spi_inst
     {
         __SPI3_CLK_ENABLE();
     }
-    else if (spi_cfg.Instance == SPI4)
-    {
-        __SPI4_CLK_ENABLE();
-    }
-    else if (spi_cfg.Instance == SPI5)
-    {
-        __SPI5_CLK_ENABLE();
-    }
-    else if (spi_cfg.Instance == SPI6)
-    {
-        __SPI6_CLK_ENABLE();
-    }
+    // else if (spi_cfg.Instance == SPI4)
+    // {
+    //     __SPI4_CLK_ENABLE();
+    // }
+    // else if (spi_cfg.Instance == SPI5)
+    // {
+    //     __SPI5_CLK_ENABLE();
+    // }
     else
         return false;
 

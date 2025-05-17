@@ -25,19 +25,6 @@ extern "C" {
 
 #define IMU_DATA_SIZE sizeof(SrvIMU_Data_TypeDef)
 
-typedef union
-{
-    struct
-    {
-        uint8_t Pri_State : 2;
-        uint8_t Sec_State : 2;
-        uint8_t Fus_State : 2;
-        uint8_t res       : 2;
-    } sec;
-
-    uint8_t val;
-} SrvMpu_Reg_TypeDef;
-
 typedef enum
 {
     SrvIMU_Dev_Detect_Error = -12,

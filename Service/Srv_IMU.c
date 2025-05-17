@@ -56,8 +56,8 @@ static DevICM426xxObj_TypeDef ICM42688PObj;
 static Error_Handler SrvMPU_Error_Handle = 0;
 
 /* IMU -> ICM42688P */
-static SrvMpu_Reg_TypeDef SrvMpu_Init_Reg;
-static SrvMpu_Reg_TypeDef SrvMpu_Update_Reg;
+static bool SrvMpu_Init = false;
+static bool SrvMpu_Update = false;
 
 static SrvIMU_Data_TypeDef IMU_Data;
 static SrvIMU_Data_TypeDef IMU_Data_Lst;
@@ -215,14 +215,11 @@ static SrvIMU_ErrorCode_List SrvIMU_Init(void)
     /* regist all error to the error tree */
     ErrorLog.registe(SrvMPU_Error_Handle, SrvIMU_ErrorList, sizeof(SrvIMU_ErrorList) / sizeof(SrvIMU_ErrorList[0]));
 
-    SrvIMU_ErrorCode_List PriIMU_Init_State = SrvIMU_IMU_Init();
+    SrvIMU_ErrorCode_List IMU_Init_State = SrvIMU_IMU_Init();
 
-    SrvMpu_Init_Reg.val = 0;
-    SrvMpu_Update_Reg.val = 0;
-
-    if (PriIMU_Init_State == SrvIMU_No_Error)
+    if (IMU_Init_State == SrvIMU_No_Error)
     {
-        SrvMpu_Init_Reg.sec.Pri_State = true;
+        SrvMpu_Init = true;
 
         /* init filter */
         IMU_Gyr_LPF_Handle[Axis_X] = Butterworth.init(Gyr_Filter_Ptr);
@@ -244,9 +241,9 @@ static SrvIMU_ErrorCode_List SrvIMU_Init(void)
         }
     }
     else
-        ErrorLog.trigger(SrvMPU_Error_Handle, PriIMU_Init_State, (uint8_t *)&IMU_Obj, sizeof(IMU_Obj));
+        ErrorLog.trigger(SrvMPU_Error_Handle, IMU_Init_State, (uint8_t *)&IMU_Obj, sizeof(IMU_Obj));
 
-    if(!SrvMpu_Init_Reg.sec.Pri_State)
+    if(!SrvMpu_Init)
         return SrvIMU_AllModule_Init_Error;
 
     return SrvIMU_Dev_Init_Error;
@@ -459,10 +456,10 @@ static bool SrvIMU_Sample(void)
     /* don`t use error tree down below it may decrease code efficient */
     /* trigger error directly when sampling */
     /* lock fus data */
-    SrvMpu_Update_Reg.sec.Fus_State = true;
+    SrvMpu_Update = true;
 
     /* pri imu init successed */
-    if (SrvMpu_Init_Reg.sec.Pri_State)
+    if (SrvMpu_Init)
     {
         imu_scale = IMU_Obj.get_scale(IMU_Obj.obj_ptr);
         IMU_Data.acc_scale = imu_scale.acc_scale;
@@ -472,7 +469,7 @@ static bool SrvIMU_Sample(void)
         if (IMU_Obj.get_drdy(IMU_Obj.obj_ptr) && IMU_Obj.sample(IMU_Obj.obj_ptr))
         {
             /* lock */
-            SrvMpu_Update_Reg.sec.Pri_State = true;
+            SrvMpu_Update = true;
 
             IMU_Data.cycle_cnt++;
             IMU_Data.time_stamp = IMU_Obj.OriData_ptr->time_stamp;
@@ -514,7 +511,7 @@ static bool SrvIMU_Sample(void)
                 }
 
                 /* unlock */
-                SrvMpu_Update_Reg.sec.Pri_State = false;
+                SrvMpu_Update = false;
                 IMU_Data_Lst = IMU_Data;
             }
         }
@@ -534,14 +531,14 @@ static bool SrvIMU_Sample(void)
     SrvIMU_Calib_GyroZeroOffset(&Gyro_Calib_Monitor, IMU_Data.org_gyr);
     
     /* unlock fus data */
-    SrvMpu_Update_Reg.sec.Fus_State = false;
+    SrvMpu_Update = false;
 
     return sample_state;
 }
 
 static bool SrvIMU_Get_Range(SrvIMU_Range_TypeDef *range)
 {
-    if(SrvMpu_Init_Reg.sec.Pri_State && range)
+    if(SrvMpu_Init && range)
     {
         range->Acc = IMU_Obj.acc_trip;
         range->Gyr = IMU_Obj.gyr_trip;
@@ -562,7 +559,7 @@ static bool SrvIMU_Get_Data(SrvIMU_Data_TypeDef *data)
         return false;
 
 reupdate_imu:
-    if (!SrvMpu_Update_Reg.sec.Pri_State)
+    if (!SrvMpu_Update)
     {
         memcpy(&imu_data_tmp, &IMU_Data, IMU_DATA_SIZE);
     }
@@ -581,7 +578,7 @@ static float SrvIMU_Get_MaxAngularSpeed_Diff(void)
 {
     uint16_t angular_diff = 0;
 
-    if (SrvMpu_Init_Reg.sec.Pri_State)
+    if (SrvMpu_Init)
     {
         // angular_diff = (uint16_t)(DevMPU6000.get_gyr_angular_speed_diff(&MPU6000Obj) * ANGULAR_SPEED_ACCURACY);
     }
@@ -607,7 +604,7 @@ static void SrvIMU_ErrorProc(void)
 /************************************************************ DataReady Pin Exti Callback *****************************************************************************/
 static void SrvIMU_IMU_ExtiCallback(void)
 {
-    if (SrvMpu_Init_Reg.sec.Pri_State)
+    if (SrvMpu_Init)
         IMU_Obj.set_drdy(IMU_Obj.obj_ptr);
 }
 

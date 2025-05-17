@@ -37,8 +37,8 @@ extern const uint8_t HWVer[3];
 #define IMU_CS_PORT GPIOC
 #define IMU_CS_PIN GPIO_PIN_10
 
-#define IMU_INT_PORT GPIOB
-#define IMU_INT_PIN GPIO_PIN_2
+#define IMU_INT_PORT GPIOA
+#define IMU_INT_PIN GPIO_PIN_4
 
 #define IMU_CLK_PORT GPIOA
 #define IMU_CLK_PIN GPIO_PIN_5
@@ -46,7 +46,7 @@ extern const uint8_t HWVer[3];
 #define IMU_MISO_PORT GPIOA
 #define IMU_MISO_PIN GPIO_PIN_6
 
-#define IMU_MOSI_PORT GPIOD
+#define IMU_MOSI_PORT GPIOA
 #define IMU_MOSI_PIN GPIO_PIN_7
 
 /* Baro IIC Pin */

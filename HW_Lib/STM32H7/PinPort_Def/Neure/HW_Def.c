@@ -122,7 +122,7 @@ BspSPI_Config_TypeDef IMU_BusCfg = {
     .Instance = IMU_SPI_BUS,
     .CLKPolarity = SPI_POLARITY_HIGH,
     .CLKPhase = SPI_PHASE_2EDGE,
-    .BaudRatePrescaler = SPI_BAUDRATEPRESCALER_4,
+    .BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2,
     .Pin = {
         .pin_Alternate = GPIO_AF5_SPI1,
 

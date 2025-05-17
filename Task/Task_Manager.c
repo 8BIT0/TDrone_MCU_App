@@ -78,7 +78,7 @@ void Task_Manager_CreateTask(void const *arg)
             DEBUG_INFO("Sys Time: %d\r\n", sys_time);
 
             DataPipe_Init();
-            Storage.init(&StorageDevObj);
+            // Storage.init(&StorageDevObj);
             SrvUpgrade.init(NULL);
             SrvComProto.init(SrvComProto_Type_MAV, NULL);
             
