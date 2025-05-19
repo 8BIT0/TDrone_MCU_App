@@ -57,7 +57,6 @@ typedef struct
 typedef struct
 {
     uint32_t time_stamp;
-    uint32_t cycle_cnt;
 
     float tempera;
 
@@ -72,14 +71,7 @@ typedef struct
     SrvIMU_SampleErrorCode_List error_code;
     float acc_scale;
     float gyr_scale;
-    uint16_t chk_sum;
 } SrvIMU_Data_TypeDef;
-
-typedef union
-{
-    uint8_t buff[sizeof(SrvIMU_Data_TypeDef)];
-    SrvIMU_Data_TypeDef data;
-} SrvIMU_UnionData_TypeDef;
 
 typedef struct
 {
@@ -99,7 +91,6 @@ typedef struct
     SrvIMU_ErrorCode_List (*init)(void);
     bool (*sample)(void);
     bool (*get)(SrvIMU_Data_TypeDef *data);
-    bool (*get_range)(SrvIMU_Range_TypeDef *range);
     float (*get_max_angular_speed_diff)(void);
     void (*error_proc)(void);
 } SrvIMU_TypeDef;

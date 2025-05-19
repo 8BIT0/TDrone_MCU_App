@@ -171,7 +171,6 @@ static bool SrvIMU_Get_Data(SrvIMU_Data_TypeDef *data);
 static void SrvIMU_ErrorProc(void);
 static float SrvIMU_Get_MaxAngularSpeed_Diff(void);
 static void SrvIMU_Calib_GyroZeroOffset(SrvIMU_CalibMonitor_TypeDef *cali_monitor, float *gyr);
-static bool SrvIMU_Get_Range(SrvIMU_Range_TypeDef *range);
 
 /* internal function */
 static int8_t SrvIMU_IMU_Init(void);
@@ -185,7 +184,6 @@ SrvIMU_TypeDef SrvIMU = {
     .init = SrvIMU_Init,
     .sample = SrvIMU_Sample,
     .get = SrvIMU_Get_Data,
-    .get_range = SrvIMU_Get_Range,
     .error_proc = SrvIMU_ErrorProc,
     .get_max_angular_speed_diff = SrvIMU_Get_MaxAngularSpeed_Diff,
 };
@@ -361,7 +359,7 @@ static void SrvIMU_Calib_GyroZeroOffset(SrvIMU_CalibMonitor_TypeDef *cali_monito
 {
     uint8_t i = 0;
 
-    if ((cali_monitor->state == NULL) || (gyr == NULL))
+    if ((cali_monitor == NULL) || (gyr == NULL))
         return;
 
     switch (cali_monitor->state)
@@ -470,8 +468,6 @@ static bool SrvIMU_Sample(void)
         {
             /* lock */
             SrvMpu_Update = true;
-
-            IMU_Data.cycle_cnt++;
             IMU_Data.time_stamp = IMU_Obj.OriData_ptr->time_stamp;
 
             /* check Primary IMU module Sample is correct or not */
@@ -534,19 +530,6 @@ static bool SrvIMU_Sample(void)
     SrvMpu_Update = false;
 
     return sample_state;
-}
-
-static bool SrvIMU_Get_Range(SrvIMU_Range_TypeDef *range)
-{
-    if(SrvMpu_Init && range)
-    {
-        range->Acc = IMU_Obj.acc_trip;
-        range->Gyr = IMU_Obj.gyr_trip;
-        
-        return true; 
-    }
-    
-    return false;
 }
 
 static bool SrvIMU_Get_Data(SrvIMU_Data_TypeDef *data)
