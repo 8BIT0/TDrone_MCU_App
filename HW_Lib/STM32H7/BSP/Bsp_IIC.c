@@ -66,7 +66,7 @@ static bool BspIIC_Init(BspIICObj_TypeDef *obj)
                 __HAL_RCC_I2C2_CLK_ENABLE();
                 
                 To_IIC_Handle_Ptr(obj->handle)->Instance = I2C2;
-                To_IIC_Handle_Ptr(obj->handle)->Init.Timing = 0x00100822;
+                To_IIC_Handle_Ptr(obj->handle)->Init.Timing = 0x00100923;
                 To_IIC_Handle_Ptr(obj->handle)->Init.OwnAddress1 = 0;
                 To_IIC_Handle_Ptr(obj->handle)->Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
                 To_IIC_Handle_Ptr(obj->handle)->Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
@@ -78,15 +78,11 @@ static bool BspIIC_Init(BspIICObj_TypeDef *obj)
                 if (HAL_I2C_Init(To_IIC_Handle_Ptr(obj->handle)) != HAL_OK)
                     return false;
 
-                if (HAL_I2CEx_ConfigAnalogFilter(To_IIC_Handle_Ptr(obj->handle), I2C_ANALOGFILTER_ENABLE) != HAL_OK)
+                if (HAL_I2CEx_ConfigAnalogFilter(To_IIC_Handle_Ptr(obj->handle), I2C_ANALOGFILTER_DISABLE) != HAL_OK)
                     return false;
 
                 if (HAL_I2CEx_ConfigDigitalFilter(To_IIC_Handle_Ptr(obj->handle), 0) != HAL_OK)
                     return false;
-
-                /* I2C2 interrupt Init */
-                // HAL_NVIC_SetPriority(I2C2_ER_IRQn, 5, 0);
-                // HAL_NVIC_EnableIRQ(I2C2_ER_IRQn);
 
                 BspIIC_HandleList[BspIIC_Instance_I2C_2] = To_IIC_Handle_Ptr(obj->handle);
                 obj->init = true;
