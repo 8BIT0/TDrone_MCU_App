@@ -32,70 +32,68 @@ DevBMP280_TypeDef DevBMP280 = {
 
 static bool DevBMP280_Init(DevBMP280Obj_TypeDef *obj)
 {
-    if (obj)
+    if (obj == NULL)
+        return false;
+
+    if ((obj->get_tick == NULL) || (obj->delay_ms == NULL))
     {
-        if ((obj->get_tick == NULL) || (obj->delay_ms == NULL))
-        {
-            obj->ErrorCode = DevBMP280_Init_Error;
-            return false;
-        }
-
-        obj->ErrorCode = DevBMP280_Error_None;
-        obj->DevAddr = (BMP280_ADDR_1 << 1);
-        obj->id = 0xFF;
-
-        /* check id first */
-        if (!DevBMP280_Check_ModuleID(obj))
-        {
-            obj->ErrorCode = DevBMP280_ID_Error;
-            return false;
-        }
-
-        /* soft reset */
-        if (!DevBMP280_SoftReset(obj))
-        {
-            obj->ErrorCode = DevBMP280_Reset_Error;
-            return false;
-        }
-        obj->delay_ms(100);
-
-        if (!DevBMP280_Calibration(obj))
-        {
-            obj->ErrorCode = DevBMP280_Get_CalibParam_Error;
-            return false;
-        }
-        obj->delay_ms(20);
-
-        /* set oversimpling */
-        if (!DevBMP280_Set_Pressure_OverSampling(obj, DevBMP280_OVERSAMPLING_x16))
-        {
-            obj->ErrorCode = DevBMP280_Set_Pressure_OverSampling_Error;
-            return false;
-        }
-
-        if (!DevBMP280_Set_Temperature_OverSampling(obj, DevBMP280_OVERSAMPLING_x2))
-        {
-            obj->ErrorCode = DevBMP280_Set_Temperature_OverSampling_Error;
-            return false;
-        }
-
-        /* set filter */
-        if (!DevBMP280_Set_Filter(obj, DevBMP280_FILTER_COEFF_16))
-        {
-            obj->ErrorCode = DevBMP280_Set_Filter_Error;
-            return false;
-        }
-
-        if (!DevBMP280_Set_NormalMode(obj))
-        {
-            obj->ErrorCode = DevBMP280_Set_Mode_Error;
-            return false;
-        }
-
-        return true;
+        obj->ErrorCode = DevBMP280_Init_Error;
+        return false;
     }
 
-    return false;
+    obj->ErrorCode = DevBMP280_Error_None;
+    obj->DevAddr = (BMP280_ADDR_1 << 1);
+    obj->id = 0xFF;
+
+    /* check id first */
+    if (!DevBMP280_Check_ModuleID(obj))
+    {
+        obj->ErrorCode = DevBMP280_ID_Error;
+        return false;
+    }
+
+    /* soft reset */
+    if (!DevBMP280_SoftReset(obj))
+    {
+        obj->ErrorCode = DevBMP280_Reset_Error;
+        return false;
+    }
+    obj->delay_ms(100);
+
+    if (!DevBMP280_Calibration(obj))
+    {
+        obj->ErrorCode = DevBMP280_Get_CalibParam_Error;
+        return false;
+    }
+    obj->delay_ms(20);
+
+    /* set oversimpling */
+    if (!DevBMP280_Set_Pressure_OverSampling(obj, DevBMP280_OVERSAMPLING_x16))
+    {
+        obj->ErrorCode = DevBMP280_Set_Pressure_OverSampling_Error;
+        return false;
+    }
+
+    if (!DevBMP280_Set_Temperature_OverSampling(obj, DevBMP280_OVERSAMPLING_x2))
+    {
+        obj->ErrorCode = DevBMP280_Set_Temperature_OverSampling_Error;
+        return false;
+    }
+
+    /* set filter */
+    if (!DevBMP280_Set_Filter(obj, DevBMP280_FILTER_COEFF_16))
+    {
+        obj->ErrorCode = DevBMP280_Set_Filter_Error;
+        return false;
+    }
+
+    if (!DevBMP280_Set_NormalMode(obj))
+    {
+        obj->ErrorCode = DevBMP280_Set_Mode_Error;
+        return false;
+    }
+
+    return true;
 }
 
 static bool DevBMP280_Set_Pressure_OverSampling(DevBMP280Obj_TypeDef *obj, DevBMP280_OverSampling_List OverSampling)
@@ -103,31 +101,29 @@ static bool DevBMP280_Set_Pressure_OverSampling(DevBMP280Obj_TypeDef *obj, DevBM
     uint8_t cur_setting = 0;
     uint8_t setting_readout = 0;
 
-    if (obj)
-    {
-        if (DevBMP280_Register_Read(obj, BMP280_REG_CTRL_MEAS, &cur_setting, sizeof(cur_setting)) == 0)
-            return false;
+    if (obj == NULL)
+        return false;
+
+    if (DevBMP280_Register_Read(obj, BMP280_REG_CTRL_MEAS, &cur_setting, sizeof(cur_setting)) == 0)
+        return false;
+
+    /* clear current setting */
+    cur_setting &= ~(7 << 5);
+
+    /* set incoming param */
+    cur_setting |= (OverSampling << 5);
     
-        /* clear current setting */
-        cur_setting &= ~(7 << 5);
+    if (DevBMP280_Register_Write(obj, BMP280_REG_CTRL_MEAS, cur_setting) == 0)
+        return false;
 
-        /* set incoming param */
-        cur_setting |= (OverSampling << 5);
-        
-        if (DevBMP280_Register_Write(obj, BMP280_REG_CTRL_MEAS, cur_setting) == 0)
-            return false;
+    /* after set we need to read out the setting value and check again */
+    if (DevBMP280_Register_Read(obj, BMP280_REG_CTRL_MEAS, &setting_readout, sizeof(setting_readout)) == 0)
+        return false;
 
-        /* after set we need to read out the setting value and check again */
-        if (DevBMP280_Register_Read(obj, BMP280_REG_CTRL_MEAS, &setting_readout, sizeof(setting_readout)) == 0)
-            return false;
+    if (setting_readout != cur_setting)
+        return false;
 
-        if (setting_readout != cur_setting)
-            return false;
-
-        return true;
-    }
-
-    return false;
+    return true;
 }
 
 static bool DevBMP280_Set_Temperature_OverSampling(DevBMP280Obj_TypeDef *obj, DevBMP280_OverSampling_List OverSampling)
@@ -135,31 +131,29 @@ static bool DevBMP280_Set_Temperature_OverSampling(DevBMP280Obj_TypeDef *obj, De
     uint8_t cur_setting = 0;
     uint8_t setting_readout = 0;
 
-    if (obj)
-    {
-        if (DevBMP280_Register_Read(obj, BMP280_REG_CTRL_MEAS, &cur_setting, sizeof(cur_setting)) == 0)
-            return false;
-    
-        /* clear current setting */
-        cur_setting &= ~(7 << 2);
-
-        /* set incoming param */
-        cur_setting |= (OverSampling << 2);
+    if (obj == NULL)
+        return false;
         
-        if (DevBMP280_Register_Write(obj, BMP280_REG_CTRL_MEAS, cur_setting) == 0)
-            return false;
+    if (DevBMP280_Register_Read(obj, BMP280_REG_CTRL_MEAS, &cur_setting, sizeof(cur_setting)) == 0)
+        return false;
 
-        /* after set we need to read out the setting value and check again */
-        if (DevBMP280_Register_Read(obj, BMP280_REG_CTRL_MEAS, &setting_readout, sizeof(setting_readout)) == 0)
-            return false;
+    /* clear current setting */
+    cur_setting &= ~(7 << 2);
 
-        if (setting_readout != cur_setting)
-            return false;
+    /* set incoming param */
+    cur_setting |= (OverSampling << 2);
+    
+    if (DevBMP280_Register_Write(obj, BMP280_REG_CTRL_MEAS, cur_setting) == 0)
+        return false;
 
-        return true;
-    }
+    /* after set we need to read out the setting value and check again */
+    if (DevBMP280_Register_Read(obj, BMP280_REG_CTRL_MEAS, &setting_readout, sizeof(setting_readout)) == 0)
+        return false;
 
-    return false;
+    if (setting_readout != cur_setting)
+        return false;
+
+    return true;
 }
 
 static bool DevBMP280_Set_Filter(DevBMP280Obj_TypeDef *obj, DevBMP280_Filter_List filter)
@@ -167,41 +161,37 @@ static bool DevBMP280_Set_Filter(DevBMP280Obj_TypeDef *obj, DevBMP280_Filter_Lis
     uint8_t cur_setting = 0;
     uint8_t setting_readout = 0;
 
-    if (obj)
-    {
-        if (DevBMP280_Register_Read(obj, BMP280_REG_CONFIG, &cur_setting, sizeof(cur_setting)) == 0)
-            return false;
+    if (obj == NULL)
+        return false;
 
-        cur_setting &= ~(7 << 2);
-        cur_setting |= (filter & 0x07) << 2;
+    if (DevBMP280_Register_Read(obj, BMP280_REG_CONFIG, &cur_setting, sizeof(cur_setting)) == 0)
+        return false;
 
-        if (DevBMP280_Register_Write(obj, BMP280_REG_CONFIG, cur_setting) == 0)
-            return false;
-        
-        /* after set we need to read out the setting value and check again */
-        if (DevBMP280_Register_Read(obj, BMP280_REG_CONFIG, &setting_readout, sizeof(setting_readout)) == 0)
-            return false;
+    cur_setting &= ~(7 << 2);
+    cur_setting |= (filter & 0x07) << 2;
 
-        if (setting_readout != cur_setting)
-            return false;
+    if (DevBMP280_Register_Write(obj, BMP280_REG_CONFIG, cur_setting) == 0)
+        return false;
+    
+    /* after set we need to read out the setting value and check again */
+    if (DevBMP280_Register_Read(obj, BMP280_REG_CONFIG, &setting_readout, sizeof(setting_readout)) == 0)
+        return false;
 
-        return true;
-    }
+    if (setting_readout != cur_setting)
+        return false;
 
-    return false;
+    return true;
 }
 
 static bool DevBMP_Get_Filter(DevBMP280Obj_TypeDef *obj, DevBMP280_Filter_List *filter)
 {
-    if (obj && filter)
-    {
-        if (DevBMP280_Register_Read(obj, BMP280_REG_CONFIG, filter, sizeof(uint8_t)) == 0)
-            return false;
+    if ((obj == NULL) || (filter == NULL))
+        return false;
 
-        return true;
-    }
+    if (DevBMP280_Register_Read(obj, BMP280_REG_CONFIG, filter, sizeof(uint8_t)) == 0)
+        return false;
 
-    return false;
+    return true;
 }
 
 static bool DevBMP280_Compensate_Temperature(DevBMP280Obj_TypeDef *obj)
@@ -210,35 +200,33 @@ static bool DevBMP280_Compensate_Temperature(DevBMP280Obj_TypeDef *obj)
     float var1 = 0.0f;
     float var2 = 0.0f;
     
-    if (obj)
-    {
-        var1 = ((float)obj->raw_temperature) / 16384.0f;
-        var1 -= ((float)obj->calib.t1) / 1024.0f;
-        var1 *= (float)obj->calib.t2;
-
-        var2 = ((float)obj->raw_temperature) / 131072.0f - ((float)obj->calib.t1) / 8192.0f;
-        var2 *= ((float)obj->raw_temperature) / 131072.0f - ((float)obj->calib.t1) / 8192.0f;
-        var2 *= ((float)obj->calib.t3);
-
-        obj->calib.t_fine = (int32_t)(var1 + var2);
-        obj->raw_temperature = (var1 + var2) / 5120.0f;
+    if (obj == NULL)
+        return false;
         
-        if (obj->raw_temperature < -40.0f)
-        {
-            obj->raw_temperature = -40.0f;
-            state = false;
-        }
-        else if (obj->raw_temperature > 85.0f)
-        {
-            obj->raw_temperature = 85.0f;
-            state = false;
-        }
+    var1 = ((float)obj->raw_temperature) / 16384.0f;
+    var1 -= ((float)obj->calib.t1) / 1024.0f;
+    var1 *= (float)obj->calib.t2;
 
-        obj->temperature = obj->raw_temperature;
-        return state;
+    var2 = ((float)obj->raw_temperature) / 131072.0f - ((float)obj->calib.t1) / 8192.0f;
+    var2 *= ((float)obj->raw_temperature) / 131072.0f - ((float)obj->calib.t1) / 8192.0f;
+    var2 *= ((float)obj->calib.t3);
+
+    obj->calib.t_fine = (int32_t)(var1 + var2);
+    obj->raw_temperature = (var1 + var2) / 5120.0f;
+    
+    if (obj->raw_temperature < -40.0f)
+    {
+        obj->raw_temperature = -40.0f;
+        state = false;
+    }
+    else if (obj->raw_temperature > 85.0f)
+    {
+        obj->raw_temperature = 85.0f;
+        state = false;
     }
 
-    return false;
+    obj->temperature = obj->raw_temperature;
+    return state;
 }
 
 static bool DevBMP280_Compensate_Pressure(DevBMP280Obj_TypeDef *obj)
@@ -247,69 +235,65 @@ static bool DevBMP280_Compensate_Pressure(DevBMP280Obj_TypeDef *obj)
     float var2 = 0.0f;
     bool state = true;
 
-    if (obj)
+    if (obj == NULL)
+        return false;
+
+    var1 = ((float)obj->calib.t_fine / 2.0f) - 64000.0f;
+    var2 = var1 * var1 * ((float)obj->calib.p6) / 32768.0f;
+    var2 = var2 + var1 * ((float)obj->calib.p5) * 2.0f;
+    var2 = (var2 / 4.0f) + (((float)obj->calib.p4) * 65536.0f);
+    var1 = (((float)obj->calib.p3) * var1 * var1 / 524288.0f + ((float)obj->calib.p2) * var1) / 524288.0f;
+    var1 = (1.0f + var1 / 32768.0f) * ((float)obj->calib.p1);
+    obj->pressure = 0.0f;
+
+    if ((var1 < 0.0f) || (var1 > 0.0f))
     {
-        var1 = ((float)obj->calib.t_fine / 2.0f) - 64000.0f;
-        var2 = var1 * var1 * ((float)obj->calib.p6) / 32768.0f;
-        var2 = var2 + var1 * ((float)obj->calib.p5) * 2.0f;
-        var2 = (var2 / 4.0f) + (((float)obj->calib.p4) * 65536.0f);
-        var1 = (((float)obj->calib.p3) * var1 * var1 / 524288.0f + ((float)obj->calib.p2) * var1) / 524288.0f;
-        var1 = (1.0f + var1 / 32768.0f) * ((float)obj->calib.p1);
-        obj->pressure = 0.0f;
-
-        if ((var1 < 0.0f) || \
-            (var1 > 0.0f))
+        obj->pressure = 1048576.0f - obj->raw_pressure;
+        obj->pressure = (obj->pressure - (var2 / 4096.0f)) * 6250.0f / var1;
+        var1 = ((float)obj->calib.p9) * obj->pressure * obj->pressure / 2147483648.0f;
+        var2 = obj->pressure * ((float)obj->calib.p8) / 32768.0f;
+        obj->pressure += (var1 + var2 + ((float)obj->calib.p7)) / 16.0f;
+        
+        if (obj->pressure < 30000.0f)
         {
-            obj->pressure = 1048576.0f - obj->raw_pressure;
-            obj->pressure = (obj->pressure - (var2 / 4096.0f)) * 6250.0f / var1;
-            var1 = ((float)obj->calib.p9) * obj->pressure * obj->pressure / 2147483648.0f;
-            var2 = obj->pressure * ((float)obj->calib.p8) / 32768.0f;
-            obj->pressure += (var1 + var2 + ((float)obj->calib.p7)) / 16.0f;
-            
-            if (obj->pressure < 30000.0f)
-            {
-                obj->pressure = 30000.0f;
-                state = false;
-            }
-            else if (obj->pressure > 110000.0f)
-            {
-                obj->pressure = 110000.0f;
-                state = false;
-            }
-
-            return state;
+            obj->pressure = 30000.0f;
+            state = false;
         }
-            
-        obj->pressure = 0.0f;
-    }
+        else if (obj->pressure > 110000.0f)
+        {
+            obj->pressure = 110000.0f;
+            state = false;
+        }
 
+        return state;
+    }
+        
+    obj->pressure = 0.0f;
     return false;
 }
 
 static bool DevBMP280_GetStatus(DevBMP280Obj_TypeDef *obj, DevBMP280_Status_TypeDef *status)
 {
-    if (obj && status)
-    {
-        if (DevBMP280_Register_Read(obj, BMP280_REG_STATUS, &(status->val), sizeof(uint8_t)) == 0)
-            return false;
+    if ((obj == NULL) || (status == NULL))
+        return false;
 
-        return true;
-    }
+    if (DevBMP280_Register_Read(obj, BMP280_REG_STATUS, &(status->val), sizeof(uint8_t)) == 0)
+        return false;
 
-    return false;
+    return true;
 }
 
 static bool DevBMP280_Get_DataReady(DevBMP280Obj_TypeDef *obj)
 {
-    if (obj)
-    {
-        if (obj->sys_tick != obj->lst_sys_tick)
-        {
-            obj->lst_sys_tick = obj->sys_tick;
-            return true;
-        }
-    }
+    if (obj == NULL)
+        return false;
 
+    if (obj->sys_tick != obj->lst_sys_tick)
+    {
+        obj->lst_sys_tick = obj->sys_tick;
+        return true;
+    }
+    
     return false;
 }
 
