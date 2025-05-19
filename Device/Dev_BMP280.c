@@ -347,9 +347,7 @@ static bool DevBMP280_Check_ModuleID(DevBMP280Obj_TypeDef *obj)
 {
     uint8_t ID = 0;
 
-    if (obj && \
-        DevBMP280_Register_Read(obj, BMP280_REG_ID, &ID, 1) && \
-        (ID == BMP280_DEVICE_ID))
+    if (obj && DevBMP280_Register_Read(obj, BMP280_REG_ID, &ID, 1) && (ID == BMP280_DEVICE_ID))
         return true;
 
     return false;

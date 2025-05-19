@@ -145,8 +145,8 @@ static uint8_t SrvBaro_Init(void)
 
         /* set sensor object */
         ToBMP280_OBJ(SrvBaroObj.sensor_obj)->bus_obj = (void *)&Baro_BusCfg;
-        ToBMP280_OBJ(SrvBaroObj.sensor_obj)->bus_tx = (DevBMP280_IIC_Write)BaroBus.read;
-        ToBMP280_OBJ(SrvBaroObj.sensor_obj)->bus_rx = (DevBMP280_IIC_Read)BaroBus.write;
+        ToBMP280_OBJ(SrvBaroObj.sensor_obj)->bus_tx = (DevBMP280_IIC_Write)BaroBus.write;
+        ToBMP280_OBJ(SrvBaroObj.sensor_obj)->bus_rx = (DevBMP280_IIC_Read)BaroBus.read;
 
         ToBMP280_OBJ(SrvBaroObj.sensor_obj)->get_tick = SrvOsCommon.get_os_ms;
         ToBMP280_OBJ(SrvBaroObj.sensor_obj)->delay_ms = SrvOsCommon.delay_ms;
