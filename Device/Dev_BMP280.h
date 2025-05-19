@@ -115,6 +115,8 @@ typedef struct
 
 typedef struct
 {
+    uint8_t id;
+
     DevBMP280_ErrorCode_List ErrorCode;
 
     DevBMP280_Get_Tick get_tick;

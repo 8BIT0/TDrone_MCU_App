@@ -39,6 +39,14 @@ static bool BspIIC_Init(BspIICObj_TypeDef *obj)
         {
             case BspIIC_Instance_I2C_2:
                 To_IIC_PeriphCLKInitType(obj->PeriphClkInitStruct)->PeriphClockSelection = RCC_PERIPHCLK_I2C2;
+                To_IIC_PeriphCLKInitType(obj->PeriphClkInitStruct)->PLL3.PLL3M = 5;
+                To_IIC_PeriphCLKInitType(obj->PeriphClkInitStruct)->PLL3.PLL3N = 128;
+                To_IIC_PeriphCLKInitType(obj->PeriphClkInitStruct)->PLL3.PLL3P = 2;
+                To_IIC_PeriphCLKInitType(obj->PeriphClkInitStruct)->PLL3.PLL3Q = 2;
+                To_IIC_PeriphCLKInitType(obj->PeriphClkInitStruct)->PLL3.PLL3R = 32;
+                To_IIC_PeriphCLKInitType(obj->PeriphClkInitStruct)->PLL3.PLL3RGE = RCC_PLL3VCIRANGE_2;
+                To_IIC_PeriphCLKInitType(obj->PeriphClkInitStruct)->PLL3.PLL3VCOSEL = RCC_PLL3VCOWIDE;
+                To_IIC_PeriphCLKInitType(obj->PeriphClkInitStruct)->PLL3.PLL3FRACN = 0;
                 To_IIC_PeriphCLKInitType(obj->PeriphClkInitStruct)->I2c123ClockSelection = RCC_I2C123CLKSOURCE_D2PCLK1;
                 if (HAL_RCCEx_PeriphCLKConfig(To_IIC_PeriphCLKInitType(obj->PeriphClkInitStruct)) != HAL_OK)
                     return false;
@@ -58,7 +66,7 @@ static bool BspIIC_Init(BspIICObj_TypeDef *obj)
                 __HAL_RCC_I2C2_CLK_ENABLE();
                 
                 To_IIC_Handle_Ptr(obj->handle)->Instance = I2C2;
-                To_IIC_Handle_Ptr(obj->handle)->Init.Timing = 0x00702991;//0x10909CEC;
+                To_IIC_Handle_Ptr(obj->handle)->Init.Timing = 0x00100822;//0x00702991;
                 To_IIC_Handle_Ptr(obj->handle)->Init.OwnAddress1 = 0;
                 To_IIC_Handle_Ptr(obj->handle)->Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
                 To_IIC_Handle_Ptr(obj->handle)->Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
@@ -77,15 +85,14 @@ static bool BspIIC_Init(BspIICObj_TypeDef *obj)
                     return false;
 
                 /* I2C2 interrupt Init */
-                HAL_NVIC_SetPriority(I2C2_ER_IRQn, 5, 0);
-                HAL_NVIC_EnableIRQ(I2C2_ER_IRQn);
+                // HAL_NVIC_SetPriority(I2C2_ER_IRQn, 5, 0);
+                // HAL_NVIC_EnableIRQ(I2C2_ER_IRQn);
 
                 BspIIC_HandleList[BspIIC_Instance_I2C_2] = To_IIC_Handle_Ptr(obj->handle);
                 obj->init = true;
                 return true;
 
-            default:
-                return false;
+            default: return false;
         }
     }
 
@@ -102,11 +109,8 @@ static bool BspIIC_DeInit(BspIICObj_TypeDef *obj)
             {
                 case BspIIC_Instance_I2C_2:
                     __HAL_RCC_I2C2_CLK_DISABLE();
-                
                     HAL_GPIO_DeInit(obj->Pin->port_sck, obj->Pin->pin_sck);
                     HAL_GPIO_DeInit(obj->Pin->port_sda, obj->Pin->pin_sda);
-
-                    HAL_NVIC_DisableIRQ(I2C2_ER_IRQn);
                     obj->init = false;
                     break;
 

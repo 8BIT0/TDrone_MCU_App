@@ -140,9 +140,6 @@ static uint8_t SrvBaro_Init(void)
     if ((SrvBaroObj.sensor_obj != NULL) && \
         (SrvBaroObj.sensor_api != NULL))
     {
-        ToBMP280_OBJ(SrvBaroObj.sensor_obj)->bus_tx = NULL;
-        ToBMP280_OBJ(SrvBaroObj.sensor_obj)->bus_rx = NULL;
-
         /* set sensor object */
         ToBMP280_OBJ(SrvBaroObj.sensor_obj)->bus_obj = (void *)&Baro_BusCfg;
         ToBMP280_OBJ(SrvBaroObj.sensor_obj)->bus_tx = (DevBMP280_IIC_Write)BaroBus.write;

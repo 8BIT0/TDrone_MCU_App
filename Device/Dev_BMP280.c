@@ -41,7 +41,8 @@ static bool DevBMP280_Init(DevBMP280Obj_TypeDef *obj)
         }
 
         obj->ErrorCode = DevBMP280_Error_None;
-        obj->DevAddr = BMP280_ADDR_1;
+        obj->DevAddr = (BMP280_ADDR_1 << 1);
+        obj->id = 0xFF;
 
         /* check id first */
         if (!DevBMP280_Check_ModuleID(obj))
@@ -345,9 +346,7 @@ static bool DevBMP280_SoftReset(DevBMP280Obj_TypeDef *obj)
 
 static bool DevBMP280_Check_ModuleID(DevBMP280Obj_TypeDef *obj)
 {
-    uint8_t ID = 0;
-
-    if (obj && DevBMP280_Register_Read(obj, BMP280_REG_ID, &ID, 1) && (ID == BMP280_DEVICE_ID))
+    if (obj && DevBMP280_Register_Read(obj, BMP280_REG_ID, &obj->id, 1) && (obj->id == BMP280_DEVICE_ID))
         return true;
 
     return false;
@@ -565,8 +564,11 @@ static bool DevBMP280_Sample(DevBMP280Obj_TypeDef *obj)
 static uint16_t DevBMP280_Register_Read(DevBMP280Obj_TypeDef *obj, uint8_t reg, uint8_t *p_buf, uint16_t len)
 {
     if (obj && obj->bus_obj && p_buf && len && obj->bus_rx)
+    {
         /* iic communicate */
-       return (uint16_t)obj->bus_rx(obj->bus_obj, obj->DevAddr, DevBMP280_Read_Mask(reg), p_buf, len);
+        if (obj->bus_rx(obj->bus_obj, obj->DevAddr, DevBMP280_Read_Mask(reg), p_buf, len))
+            return len;
+    }
 
     return 0;
 }
@@ -574,8 +576,11 @@ static uint16_t DevBMP280_Register_Read(DevBMP280Obj_TypeDef *obj, uint8_t reg, 
 static uint16_t DevBMP280_Register_Write(DevBMP280Obj_TypeDef *obj, uint8_t reg, uint8_t p_buf)
 {
     if (obj && obj->bus_obj && obj->bus_tx)
+    {
         /* iic communicate */
-        return (uint16_t)obj->bus_tx(obj->bus_obj, obj->DevAddr, DevBMP280_Write_Mask(reg), &p_buf, 1);
+        if (obj->bus_tx(obj->bus_obj, obj->DevAddr, DevBMP280_Write_Mask(reg), &p_buf, 1))
+            return 1;
+    }
 
     return 0;
 }
