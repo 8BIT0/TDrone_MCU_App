@@ -106,10 +106,10 @@ BspGPIO_Obj_TypeDef Uart1_RxPin = {
 
 BspIIC_PinConfig_TypeDef SrvBaro_BusPin = {
     .pin_Alternate = GPIO_AF4_I2C2,
-    .port_sda = GPIOB,
-    .port_sck = GPIOB,
-    .pin_sda = GPIO_PIN_11,
-    .pin_sck = GPIO_PIN_10,
+    .port_sda = IIC2_SDA_PORT,
+    .port_sck = IIC2_SCK_PORT,
+    .pin_sda = IIC2_SDA_PIN,
+    .pin_sck = IIC2_SCK_PIN,
 };
 
 BspGPIO_Obj_TypeDef USB_DctPin = {
