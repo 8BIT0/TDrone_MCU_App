@@ -101,22 +101,22 @@ static bool SrvBaro_BusInit(void)
 {
     Baro_BusCfg.handle = SrvOsCommon.malloc(BaroBus_Handle_Size);
     if (Baro_BusCfg.handle == NULL)
-    {
-        SrvOsCommon.free(Baro_BusCfg.handle);
         return false;
-    }
 
     Baro_BusCfg.PeriphClkInitStruct = SrvOsCommon.malloc(I2C_PeriphCLKInitType_Size);
     if (Baro_BusCfg.PeriphClkInitStruct == NULL)
     {
         SrvOsCommon.free(Baro_BusCfg.handle);
-        SrvOsCommon.free(Baro_BusCfg.PeriphClkInitStruct);
         return false;
     }
 
     if (!BaroBus.init(&Baro_BusCfg))
+    {
+        SrvOsCommon.free(Baro_BusCfg.handle);
+        SrvOsCommon.free(Baro_BusCfg.PeriphClkInitStruct);
         return false;
-
+    }
+    
     return true;
 }
 
