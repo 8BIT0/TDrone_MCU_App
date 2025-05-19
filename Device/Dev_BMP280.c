@@ -293,7 +293,7 @@ static bool DevBMP280_Get_DataReady(DevBMP280Obj_TypeDef *obj)
         obj->lst_sys_tick = obj->sys_tick;
         return true;
     }
-    
+
     return false;
 }
 
