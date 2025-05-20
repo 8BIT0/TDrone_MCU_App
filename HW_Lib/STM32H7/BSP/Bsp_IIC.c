@@ -58,7 +58,7 @@ static bool BspIIC_Init(BspIICObj_TypeDef *obj)
                 __HAL_RCC_I2C2_CLK_ENABLE();
                 
                 To_IIC_Handle_Ptr(obj->handle)->Instance = I2C2;
-                To_IIC_Handle_Ptr(obj->handle)->Init.Timing = 0x00702991;
+                To_IIC_Handle_Ptr(obj->handle)->Init.Timing = 0x10909CEC;
                 To_IIC_Handle_Ptr(obj->handle)->Init.OwnAddress1 = 0;
                 To_IIC_Handle_Ptr(obj->handle)->Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
                 To_IIC_Handle_Ptr(obj->handle)->Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
@@ -89,28 +89,20 @@ static bool BspIIC_Init(BspIICObj_TypeDef *obj)
 
 static bool BspIIC_DeInit(BspIICObj_TypeDef *obj)
 {
-    if(obj)
+    if((obj == NULL) || !obj->init)
+        return false;
+
+    switch(obj->instance_id)
     {
-        if(obj->init)
-        {
-            switch(obj->instance_id)
-            {
-                case BspIIC_Instance_I2C_2:
-                    __HAL_RCC_I2C2_CLK_DISABLE();
-                    HAL_GPIO_DeInit(obj->Pin->port_sck, obj->Pin->pin_sck);
-                    HAL_GPIO_DeInit(obj->Pin->port_sda, obj->Pin->pin_sda);
-                    obj->init = false;
-                    break;
+        case BspIIC_Instance_I2C_2:
+            __HAL_RCC_I2C2_CLK_DISABLE();
+            HAL_GPIO_DeInit(obj->Pin->port_sck, obj->Pin->pin_sck);
+            HAL_GPIO_DeInit(obj->Pin->port_sda, obj->Pin->pin_sda);
+            obj->init = false;
+            return true;
 
-                default:
-                    return false;
-            }
-        }
-
-        return true;
+        default: return false;
     }
-
-    return false;
 }
 
 static bool BspIIC_Read(BspIICObj_TypeDef *obj, uint16_t dev_addr, uint16_t reg, uint8_t *p_buf, uint16_t len)
