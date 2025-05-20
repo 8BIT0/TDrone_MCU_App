@@ -129,11 +129,9 @@ static bool BspIIC_Write(BspIICObj_TypeDef *obj, uint16_t dev_addr, uint16_t reg
 
 void *BspIIC_Get_HandlePtr(BspIIC_Instance_List index)
 {
-    if(index < BspIIC_Instance_I2C_Sum)
-    {
-        return BspIIC_HandleList[index];
-    }
+    if(index > BspIIC_Instance_I2C_Sum)
+        return NULL;
 
-    return NULL;
+    return BspIIC_HandleList[index];
 }
 

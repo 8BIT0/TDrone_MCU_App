@@ -32,12 +32,10 @@ DevBMP280_TypeDef DevBMP280 = {
 
 static bool DevBMP280_Init(DevBMP280Obj_TypeDef *obj)
 {
-    if (obj == NULL)
-        return false;
-
-    if ((obj->get_tick == NULL) || (obj->delay_ms == NULL))
+    if ((obj == NULL) || (obj->get_tick == NULL) || (obj->delay_ms == NULL))
     {
-        obj->ErrorCode = DevBMP280_Init_Error;
+        if (obj)
+            obj->ErrorCode = DevBMP280_Init_Error;
         return false;
     }
 
