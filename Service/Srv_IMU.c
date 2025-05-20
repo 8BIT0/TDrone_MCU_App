@@ -228,10 +228,9 @@ static SrvIMU_ErrorCode_List SrvIMU_Init(void)
         IMU_Acc_LPF_Handle[Axis_Y] = Butterworth.init(Acc_Filter_Ptr);
         IMU_Acc_LPF_Handle[Axis_Z] = Butterworth.init(Acc_Filter_Ptr);
 
-        for(uint8_t i = Axis_X; i < Axis_Sum; i++)
+        for (uint8_t i = Axis_X; i < Axis_Sum; i++)
         {
-            if( (IMU_Gyr_LPF_Handle[i] == 0) || 
-                (IMU_Acc_LPF_Handle[i] == 0))
+            if ((IMU_Gyr_LPF_Handle[i] == 0) || (IMU_Acc_LPF_Handle[i] == 0))
             {
                 ErrorLog.trigger(SrvMPU_Error_Handle, SrvIMU_IMU_Filter_Init_Error, NULL, 0);
                 return SrvIMU_IMU_Filter_Init_Error;
@@ -327,9 +326,7 @@ static SrvIMU_SampleErrorCode_List SrvIMU_DataCheck(IMUData_TypeDef *data, uint8
                 data->acc_blunt_cnt[axis]++;
 
                 if (data->acc_blunt_cnt[axis] >= IMU_BLUNT_SAMPLE_CNT)
-                {
                     return SrvIMU_Sample_Data_Acc_Blunt;
-                }
             }
             else
                 data->acc_blunt_cnt[axis] = 0;
@@ -342,9 +339,7 @@ static SrvIMU_SampleErrorCode_List SrvIMU_DataCheck(IMUData_TypeDef *data, uint8
                 data->gyr_blunt_cnt[axis]++;
 
                 if (data->gyr_blunt_cnt[axis] >= IMU_BLUNT_SAMPLE_CNT)
-                {
                     return SrvIMU_Sample_Data_Gyr_Blunt;
-                }
             }
             else
                 data->gyr_blunt_cnt[axis] = 0;
