@@ -301,7 +301,7 @@ static DevBMP280_Data_TypeDef DevBMP280_Get_Data(DevBMP280Obj_TypeDef *obj)
 {
     DevBMP280_Data_TypeDef data_tmp;
 
-    memset(&data_tmp, 0, sizeof(DevBMP280_Data_TypeDef ));
+    memset(&data_tmp, 0, sizeof(DevBMP280_Data_TypeDef));
     if (obj)
     {
         data_tmp.scaled_press = obj->pressure;
@@ -316,7 +316,7 @@ static DevBMP280_Data_TypeDef DevBMP280_Get_Data(DevBMP280Obj_TypeDef *obj)
 static bool DevBMP280_SoftReset(DevBMP280Obj_TypeDef *obj)
 {
     uint8_t reg = DevBMP280_Write_Mask(BMP280_REG_RESET);
-    uint8_t dummy_data = 0;
+    uint8_t dummy_data = 0xB6;
 
     if (obj && obj->bus_obj && obj->delay_ms && obj->bus_tx)
     {
@@ -341,25 +341,23 @@ static bool DevBMP280_Set_NormalMode(DevBMP280Obj_TypeDef *obj)
     uint8_t mode = 0;
     uint8_t read_mode = 0;
 
-    if (obj)
-    {
-        if (DevBMP280_Register_Read(obj, BMP280_REG_CTRL_MEAS, &mode, 1) == 0)
-            return false;
-        
-        mode &= ~(3 << 0);
-        mode |= 0x03 << 0;
+    if (obj == NULL)
+        return false;
 
-        if (DevBMP280_Register_Write(obj, BMP280_REG_CTRL_MEAS, mode) == 0)
-            return false;
+    if (DevBMP280_Register_Read(obj, BMP280_REG_CTRL_MEAS, &mode, 1) == 0)
+        return false;
     
-        if (DevBMP280_Register_Read(obj, BMP280_REG_CTRL_MEAS, &read_mode, 1) == 0)
-            return false;
+    mode &= ~(3 << 0);
+    mode |= 0x03 << 0;
 
-        if (mode == read_mode)
-            return true;
-    }
+    if (DevBMP280_Register_Write(obj, BMP280_REG_CTRL_MEAS, mode) == 0)
+        return false;
 
-    return false;
+    if (DevBMP280_Register_Read(obj, BMP280_REG_CTRL_MEAS, &read_mode, 1) == 0)
+        return false;
+
+    if (mode == read_mode)
+        return true;
 }
 
 static bool DevBMP280_Calibration(DevBMP280Obj_TypeDef *obj)
@@ -367,110 +365,108 @@ static bool DevBMP280_Calibration(DevBMP280Obj_TypeDef *obj)
     uint8_t rx_tmp[2] = {0};
     uint16_t state = 0;
 
-    if (obj)
-    {
-        /* get param t1 */
-        state = DevBMP280_Register_Read(obj, BMP280_REG_NVM_PAR_T1_L, rx_tmp, sizeof(rx_tmp));
-        if (state == 0)
-            return false;
+    if (obj == NULL)
+        return false;
 
-        obj->calib.t1 = (uint16_t)(rx_tmp[1] << 8 | rx_tmp[0]);
-        memset(rx_tmp, 0, sizeof(rx_tmp));
+    /* get param t1 */
+    state = DevBMP280_Register_Read(obj, BMP280_REG_NVM_PAR_T1_L, rx_tmp, sizeof(rx_tmp));
+    if (state == 0)
+        return false;
 
-        /* get param t2 */
-        state = DevBMP280_Register_Read(obj, BMP280_REG_NVM_PAR_T2_L, rx_tmp, sizeof(rx_tmp));
-        if (state == 0)
-            return false;
+    obj->calib.t1 = (uint16_t)(rx_tmp[1] << 8 | rx_tmp[0]);
+    memset(rx_tmp, 0, sizeof(rx_tmp));
 
-        obj->calib.t2 = (uint16_t)(rx_tmp[1] << 8 | rx_tmp[0]);
-        memset(rx_tmp, 0, sizeof(rx_tmp));
+    /* get param t2 */
+    state = DevBMP280_Register_Read(obj, BMP280_REG_NVM_PAR_T2_L, rx_tmp, sizeof(rx_tmp));
+    if (state == 0)
+        return false;
 
-        /* get param t3 */
-        state = DevBMP280_Register_Read(obj, BMP280_REG_NVM_PAR_T3_L, rx_tmp, sizeof(rx_tmp));
-        if (state == 0)
-            return false;
+    obj->calib.t2 = (uint16_t)(rx_tmp[1] << 8 | rx_tmp[0]);
+    memset(rx_tmp, 0, sizeof(rx_tmp));
 
-        obj->calib.t3 = (uint16_t)(rx_tmp[1] << 8 | rx_tmp[0]);
-        memset(rx_tmp, 0, sizeof(rx_tmp));
+    /* get param t3 */
+    state = DevBMP280_Register_Read(obj, BMP280_REG_NVM_PAR_T3_L, rx_tmp, sizeof(rx_tmp));
+    if (state == 0)
+        return false;
 
-        /* get param p1 */
-        state = DevBMP280_Register_Read(obj, BMP280_REG_NVM_PAR_P1_L, rx_tmp, sizeof(rx_tmp));
-        if (state == 0)
-            return false;
+    obj->calib.t3 = (uint16_t)(rx_tmp[1] << 8 | rx_tmp[0]);
+    memset(rx_tmp, 0, sizeof(rx_tmp));
 
-        obj->calib.p1 = (uint16_t)(rx_tmp[1] << 8 | rx_tmp[0]);
-        memset(rx_tmp, 0, sizeof(rx_tmp));
-        
-        /* get param p2 */
-        state = DevBMP280_Register_Read(obj, BMP280_REG_NVM_PAR_P2_L, rx_tmp, sizeof(rx_tmp));
-        if (state == 0)
-            return false;
+    /* get param p1 */
+    state = DevBMP280_Register_Read(obj, BMP280_REG_NVM_PAR_P1_L, rx_tmp, sizeof(rx_tmp));
+    if (state == 0)
+        return false;
 
-        obj->calib.p2 = (uint16_t)(rx_tmp[1] << 8 | rx_tmp[0]);
-        memset(rx_tmp, 0, sizeof(rx_tmp));
+    obj->calib.p1 = (uint16_t)(rx_tmp[1] << 8 | rx_tmp[0]);
+    memset(rx_tmp, 0, sizeof(rx_tmp));
+    
+    /* get param p2 */
+    state = DevBMP280_Register_Read(obj, BMP280_REG_NVM_PAR_P2_L, rx_tmp, sizeof(rx_tmp));
+    if (state == 0)
+        return false;
 
-        /* get param p3 */
-        state = DevBMP280_Register_Read(obj, BMP280_REG_NVM_PAR_P3_L, rx_tmp, sizeof(rx_tmp));
-        if (state == 0)
-            return false;
+    obj->calib.p2 = (uint16_t)(rx_tmp[1] << 8 | rx_tmp[0]);
+    memset(rx_tmp, 0, sizeof(rx_tmp));
 
-        obj->calib.p3 = (uint16_t)(rx_tmp[1] << 8 | rx_tmp[0]);
-        memset(rx_tmp, 0, sizeof(rx_tmp));
+    /* get param p3 */
+    state = DevBMP280_Register_Read(obj, BMP280_REG_NVM_PAR_P3_L, rx_tmp, sizeof(rx_tmp));
+    if (state == 0)
+        return false;
 
-        /* get param p4 */
-        state = DevBMP280_Register_Read(obj, BMP280_REG_NVM_PAR_P4_L, rx_tmp, sizeof(rx_tmp));
-        if (state == 0)
-            return false;
+    obj->calib.p3 = (uint16_t)(rx_tmp[1] << 8 | rx_tmp[0]);
+    memset(rx_tmp, 0, sizeof(rx_tmp));
 
-        obj->calib.p4 = (uint16_t)(rx_tmp[1] << 8 | rx_tmp[0]);
-        memset(rx_tmp, 0, sizeof(rx_tmp));
+    /* get param p4 */
+    state = DevBMP280_Register_Read(obj, BMP280_REG_NVM_PAR_P4_L, rx_tmp, sizeof(rx_tmp));
+    if (state == 0)
+        return false;
 
-        /* get param p5 */
-        state = DevBMP280_Register_Read(obj, BMP280_REG_NVM_PAR_P5_L, rx_tmp, sizeof(rx_tmp));
-        if (state == 0)
-            return false;
+    obj->calib.p4 = (uint16_t)(rx_tmp[1] << 8 | rx_tmp[0]);
+    memset(rx_tmp, 0, sizeof(rx_tmp));
 
-        obj->calib.p5 = (uint16_t)(rx_tmp[1] << 8 | rx_tmp[0]);
-        memset(rx_tmp, 0, sizeof(rx_tmp));
+    /* get param p5 */
+    state = DevBMP280_Register_Read(obj, BMP280_REG_NVM_PAR_P5_L, rx_tmp, sizeof(rx_tmp));
+    if (state == 0)
+        return false;
 
-        /* get param p6 */
-        state = DevBMP280_Register_Read(obj, BMP280_REG_NVM_PAR_P6_L, rx_tmp, sizeof(rx_tmp));
-        if (state == 0)
-            return false;
+    obj->calib.p5 = (uint16_t)(rx_tmp[1] << 8 | rx_tmp[0]);
+    memset(rx_tmp, 0, sizeof(rx_tmp));
 
-        obj->calib.p6 = (uint16_t)(rx_tmp[1] << 8 | rx_tmp[0]);
-        memset(rx_tmp, 0, sizeof(rx_tmp));
+    /* get param p6 */
+    state = DevBMP280_Register_Read(obj, BMP280_REG_NVM_PAR_P6_L, rx_tmp, sizeof(rx_tmp));
+    if (state == 0)
+        return false;
 
-        /* get param p7 */
-        state = DevBMP280_Register_Read(obj, BMP280_REG_NVM_PAR_P7_L, rx_tmp, sizeof(rx_tmp));
-        if (state == 0)
-            return false;
+    obj->calib.p6 = (uint16_t)(rx_tmp[1] << 8 | rx_tmp[0]);
+    memset(rx_tmp, 0, sizeof(rx_tmp));
 
-        obj->calib.p7 = (uint16_t)(rx_tmp[1] << 8 | rx_tmp[0]);
-        memset(rx_tmp, 0, sizeof(rx_tmp));
+    /* get param p7 */
+    state = DevBMP280_Register_Read(obj, BMP280_REG_NVM_PAR_P7_L, rx_tmp, sizeof(rx_tmp));
+    if (state == 0)
+        return false;
 
-        /* get param p8 */
-        state = DevBMP280_Register_Read(obj, BMP280_REG_NVM_PAR_P8_L, rx_tmp, sizeof(rx_tmp));
-        if (state == 0)
-            return false;
+    obj->calib.p7 = (uint16_t)(rx_tmp[1] << 8 | rx_tmp[0]);
+    memset(rx_tmp, 0, sizeof(rx_tmp));
 
-        obj->calib.p8 = (uint16_t)(rx_tmp[1] << 8 | rx_tmp[0]);
-        memset(rx_tmp, 0, sizeof(rx_tmp));
+    /* get param p8 */
+    state = DevBMP280_Register_Read(obj, BMP280_REG_NVM_PAR_P8_L, rx_tmp, sizeof(rx_tmp));
+    if (state == 0)
+        return false;
 
-        /* get param p9 */
-        state = DevBMP280_Register_Read(obj, BMP280_REG_NVM_PAR_P9_L, rx_tmp, sizeof(rx_tmp));
-        if (state == 0)
-            return false;
+    obj->calib.p8 = (uint16_t)(rx_tmp[1] << 8 | rx_tmp[0]);
+    memset(rx_tmp, 0, sizeof(rx_tmp));
 
-        obj->calib.p9 = (uint16_t)(rx_tmp[1] << 8 | rx_tmp[0]);
-        memset(rx_tmp, 0, sizeof(rx_tmp));
+    /* get param p9 */
+    state = DevBMP280_Register_Read(obj, BMP280_REG_NVM_PAR_P9_L, rx_tmp, sizeof(rx_tmp));
+    if (state == 0)
+        return false;
 
-        obj->calib.t_fine = 0;
+    obj->calib.p9 = (uint16_t)(rx_tmp[1] << 8 | rx_tmp[0]);
+    memset(rx_tmp, 0, sizeof(rx_tmp));
 
-        return true;
-    }
+    obj->calib.t_fine = 0;
 
-    return false;
+    return true;
 }
 
 static bool DevBMP280_Sample(DevBMP280Obj_TypeDef *obj)
