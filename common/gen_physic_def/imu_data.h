@@ -35,7 +35,6 @@ typedef enum
     Axis_Sum,
 } Axis_List;
 
-#pragma pack(1)
 typedef struct
 {
     uint32_t time_stamp;
@@ -61,7 +60,6 @@ typedef struct
     float acc_scale;
     float gyr_scale;
 } IMUModuleScale_TypeDef;
-#pragma pack()
 
 typedef struct
 {
