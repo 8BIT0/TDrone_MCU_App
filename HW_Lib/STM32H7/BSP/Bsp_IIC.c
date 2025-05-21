@@ -35,6 +35,9 @@ static bool BspIIC_Init(BspIICObj_TypeDef *obj)
             (obj->handle == NULL))
             return false;
 
+        if (BspIIC_HandleList[BspIIC_Instance_I2C_2] != NULL)
+            return true;
+
         switch((uint8_t)(obj->instance_id))
         {
             case BspIIC_Instance_I2C_2:
