@@ -24,10 +24,10 @@ static bool DevIST8310_Init(DevIST8310Obj_TypeDef *obj)
 
 static bool DevIST8310_Get_ID(DevIST8310Obj_TypeDef *obj)
 {
-    if ((obj == NULL) || (obj->bus_obj == NULL) || (obj->bus_obj->read == NULL))
+    if ((obj == NULL) || (obj->bus_obj == NULL) || (obj->bus_read == NULL))
         return false;
 
-    if ((!obj->bus_read(obj->bus_obj, IST8310_DEV_ID, &obj->id, 1)) || (obj->id != IST8310_DEV_ID))
+    if ((!obj->bus_read(obj->bus_obj, IST8310_DEV_ID, IST8310_REG_WHO_AM_I, &obj->id, (uint16_t)1)) || (obj->id != IST8310_DEV_ID))
         return false;
 
     return true;

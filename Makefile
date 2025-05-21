@@ -58,6 +58,7 @@ Device/Dev_W25Qxx_QSPI.c \
 Device/Dev_CRSF.c \
 Device/Dev_ICM426xx.c \
 Device/Dev_BMP280.c \
+Device/Dev_IST8310.c \
 Service/Srv_Receiver.c \
 Service/Srv_IMU.c \
 Service/Srv_Baro.c \
