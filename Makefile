@@ -62,6 +62,7 @@ Device/Dev_IST8310.c \
 Service/Srv_Receiver.c \
 Service/Srv_IMU.c \
 Service/Srv_Baro.c \
+Service/Srv_Mag.c \
 Service/Srv_Actuator.c \
 Service/Srv_ComProto.c \
 Service/Srv_DataHub.c \

@@ -217,7 +217,8 @@
                 "streambuf": "cpp",
                 "complex": "cpp",
                 "srv_imu.h": "c",
-                "memory": "c"
+                "memory": "c",
+                "dev_ist8310.h": "c"
         },
         "C_Cpp.errorSquiggles": "Disabled",
         "cmake.configureOnOpen": false,

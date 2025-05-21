@@ -216,7 +216,7 @@ static bool SrvReceiver_Init(SrvReceiverObj_TypeDef *obj, uint8_t *port_obj)
     To_BspUart_ObjPtr(port_obj)->RxCallback = (BspUART_Callback)SrvReceiver_SerialDecode_Callback;
 
     /* serial port init */
-    if (!BspUart.init(port_obj))
+    if (!BspUart.init(To_BspUart_ObjPtr(port_obj)))
     {
         ErrorLog.trigger(SrvReceiver_Error_Handle, Receiver_Port_Init_Error, (uint8_t *)&SrvReceiver_Monitor, SRVRECEIVER_SIZE);
         return false;
