@@ -4,6 +4,7 @@
 #include "Srv_DataHub.h"
 #include "Srv_IMU.h"
 #include "Srv_Baro.h"
+#include "Srv_Mag.h"
 #include "DataPipe.h"
 #include "MadgwickAHRS.h"
 #include "Alt_est.h"
@@ -53,15 +54,18 @@ void TaskNavi_Init(uint32_t period)
     memset(&TaskNavi_Monitor, 0, sizeof(TaskNavi_Monitor_TypeDef));
 
     /* IMU  init */
+    /* Max sample rate 1KHz */
     TaskNavi_Monitor.init_state.bit.imu = SrvIMU.init();
     TaskNavi_Monitor.imu_sample_period = TaskNavi_Monitor.max_sample_period;
 
     /* Baro init */
+    /* Max sample rate 100Hz */
     TaskNavi_Monitor.init_state.bit.baro = SrvBaro.init();
     TaskNavi_Monitor.baro_sample_period = (uint32_t)(1000 / BARO_SAMPLE_RATE);
 
     /* Mag  init */
-    TaskNavi_Monitor.init_state.bit.mag = false;
+    /* Max sample rate 200Hz */
+    TaskNavi_Monitor.init_state.bit.mag = SrvMag.init();
     TaskNavi_Monitor.mag_sample_period = (uint32_t)(1000 / MAG_SAMPLE_RATE);
 
     /* Flow init */
