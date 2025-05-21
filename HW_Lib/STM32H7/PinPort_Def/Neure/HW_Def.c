@@ -132,7 +132,13 @@ BspSPI_Config_TypeDef IMU_BusCfg = {
 
 BspIICObj_TypeDef Baro_BusCfg = {
     .init = false,
-    .instance_id = BARO_BUS,
+    .instance_id = BspIIC_Instance_I2C_2,
+    .Pin = &SrvBaro_BusPin,
+};
+
+BspIICObj_TypeDef Mag_BusCfg = {
+    .init = false,
+    .instance_id = BspIIC_Instance_I2C_2,
     .Pin = &SrvBaro_BusPin,
 };
 

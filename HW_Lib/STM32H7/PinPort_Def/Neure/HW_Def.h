@@ -50,7 +50,6 @@ extern const uint8_t HWVer[3];
 #define IMU_MOSI_PIN GPIO_PIN_7
 
 /* Baro IIC Pin */
-#define BARO_BUS  BspIIC_Instance_I2C_2
 #define IIC2_SDA_PORT GPIOB
 #define IIC2_SDA_PIN GPIO_PIN_11
 #define IIC2_SCK_PORT GPIOB
@@ -58,6 +57,7 @@ extern const uint8_t HWVer[3];
 
 #define BaroBus_Handle_Size I2C_HandleType_Size
 extern BspIICObj_TypeDef Baro_BusCfg;
+extern BspIICObj_TypeDef Mag_BusCfg;
 
 /* Serial Pin */
 #define UART4_TX_PORT GPIOB
@@ -188,6 +188,7 @@ extern DebugPrintObj_TypeDef DebugPort;
 #define Select_Hardware "Hardware NEURE"
 
 #define BaroBus BspIIC
+#define MagBus BspIIC
 #define Sample_Blinkly Led1
 #define Noti_LED_Ptr NULL
 #define BlackBox_Noti_Ptr NULL
