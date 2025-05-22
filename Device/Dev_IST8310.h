@@ -16,6 +16,7 @@ typedef uint32_t (*IST8310_Get_Tick)(void);
 typedef void (*IST8310_Delay_ms)(uint32_t ms);
 
 #define IST8310_ADDRESS_SUM     4
+#define IST8310_MAG_FACTORY     0.3f
 
 #define IST8310_I2C_ADDR_1      0x0C
 #define IST8310_I2C_ADDR_2      0x0D
@@ -141,6 +142,9 @@ typedef struct
     uint8_t dev_addr;
     uint8_t id;
 
+    bool hw_drdy_en;
+    bool hw_drdy;
+
     IST8310_Get_Tick get_tick;
     IST8310_Delay_ms delay;
 
@@ -156,6 +160,8 @@ typedef struct
     bool (*init)(DevIST8310Obj_TypeDef *obj);
     bool (*sample)(DevIST8310Obj_TypeDef *obj);
     MagData_TypeDef (*get)(DevIST8310Obj_TypeDef *obj);
+    bool (*reset)(DevIST8310Obj_TypeDef *obj);
+    bool (*set_drdy)(DevIST8310Obj_TypeDef *obj);
 } DevIST8310_TypeDef;
 
 extern DevIST8310_TypeDef DevIST8310;
