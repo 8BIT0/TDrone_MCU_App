@@ -220,7 +220,8 @@
                 "memory": "c",
                 "dev_ist8310.h": "c",
                 "ist8307_driver.h": "c",
-                "mag_data.h": "c"
+                "mag_data.h": "c",
+                "srv_mag.h": "c"
         },
         "C_Cpp.errorSquiggles": "Disabled",
         "cmake.configureOnOpen": false,

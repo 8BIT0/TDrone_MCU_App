@@ -152,6 +152,7 @@ typedef struct
     IST8310_Bus_Read bus_read;
     IST8310_Bus_Write bus_write;
 
+    uint32_t update_cnt;
     MagData_TypeDef data;
 } DevIST8310Obj_TypeDef;
 
@@ -159,7 +160,7 @@ typedef struct
 {
     bool (*init)(DevIST8310Obj_TypeDef *obj);
     bool (*sample)(DevIST8310Obj_TypeDef *obj);
-    MagData_TypeDef (*get)(DevIST8310Obj_TypeDef *obj);
+    MagData_TypeDef (*get)(DevIST8310Obj_TypeDef *obj, MagData_TypeDef *p_data);
     bool (*reset)(DevIST8310Obj_TypeDef *obj);
     bool (*set_drdy)(DevIST8310Obj_TypeDef *obj);
 } DevIST8310_TypeDef;

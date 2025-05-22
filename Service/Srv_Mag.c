@@ -10,6 +10,8 @@ typedef struct
 {
     bool init_state;
     uint8_t reinit_cnt;
+
+    void *p_mag_obj;
 } SrvMagMonitor_TypeDef;
 
 /* internal variable */
@@ -17,12 +19,14 @@ static SrvMagMonitor_TypeDef Monitor = {
     .init_state = false,
     .reinit_cnt = MagModule_Reinit_Max_Cnt,
 };
+static DevIST8310Obj_TypeDef IST8310Obj;
 
 /* internal function */
-static DevIST8310Obj_TypeDef IST8310Obj;
+static void SrvMag_EllipsoidFitting_Comput(float *p_mag_in, float *p_mag_out);
 
 /* external function */
 static bool SrvMag_Init(void);
+static bool SrvMag_Sample(void);
 
 SrvMag_TypeDef SrvMag = {
     .init = SrvMag_Init,
@@ -79,4 +83,28 @@ static bool SrvMag_Init(void)
 
     Monitor.init_state = true;
     return true;
+}
+
+static bool SrvMag_Sample(void)
+{
+    float raw_mag[Mag_Axis_Num];
+    float elli_fix_mag[Mag_Axis_Num];
+
+    memset(raw_mag, 0, sizeof(raw_mag));
+    memset(elli_fix_mag, 0, sizeof(elli_fix_mag));
+
+    if (!Monitor.init_state)
+        return false;
+
+    /* sample data */
+
+    /* doing ellipsoid fitting */
+
+    return true;
+}
+
+static void SrvMag_EllipsoidFitting_Comput(float *p_mag_in, float *p_mag_out)
+{
+    if (!Monitor.init_state || (p_mag_in == NULL) || (p_mag_out == NULL))
+        return;
 }

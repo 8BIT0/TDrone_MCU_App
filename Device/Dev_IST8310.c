@@ -17,12 +17,14 @@ static bool DevIST8310_Init(DevIST8310Obj_TypeDef *obj);
 static bool DevIST8310_SoftReset(DevIST8310Obj_TypeDef *obj);
 static bool DevIST8310_Set_Drdy(DevIST8310Obj_TypeDef *obj);
 static bool DevIST8310_Sample(DevIST8310Obj_TypeDef *obj);
+static bool DevIST8310_GetData(DevIST8310Obj_TypeDef *obj, MagData_TypeDef *p_data);
 
 DevIST8310_TypeDef DevIST8310 = {
     .init       = DevIST8310_Init,
     .sample     = DevIST8310_Sample,
     .reset      = DevIST8310_SoftReset,
     .set_drdy   = DevIST8310_Set_Drdy,
+    .get        = DevIST8310_GetData,
 };
 
 static bool DevIST8310_Init(DevIST8310Obj_TypeDef *obj)
@@ -39,6 +41,7 @@ static bool DevIST8310_Init(DevIST8310Obj_TypeDef *obj)
         return false;
 
     obj->init_state = false;
+    obj->update_cnt = 0;
 
     /* check device id */
     for (uint8_t i = 0; i < IST8310_ADDRESS_SUM; i++)
@@ -206,6 +209,16 @@ static bool DevIST8310_Sample(DevIST8310Obj_TypeDef *obj)
 
     /* test */
     obj->data.mag_temp = obj->data.raw_mag_temp;
+    obj->update_cnt ++;
 
+    return true;
+}
+
+static bool DevIST8310_GetData(DevIST8310Obj_TypeDef *obj, MagData_TypeDef *p_data)
+{
+    if ((obj == NULL) || !obj->init_state || (p_data == NULL))
+        return false;
+
+    memcpy(p_data, &(obj->data), sizeof(MagData_TypeDef));
     return true;
 }
