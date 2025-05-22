@@ -71,7 +71,7 @@ static bool DevIST8310_SoftReset(DevIST8310Obj_TypeDef *obj)
     ctl2.val = 0;
     ctl2.bit.soft_reset = 1;
 
-    if (!obj->bus_write(obj->bus_obj, obj->dev_addr, IST8310_REG_CTRL_2, , (uint16_t)1))
+    if (!obj->bus_write(obj->bus_obj, obj->dev_addr, IST8310_REG_CTRL_2, &ctl2.val, (uint16_t)1))
         return false;
 
     return true;
