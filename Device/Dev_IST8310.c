@@ -10,6 +10,7 @@ static const uint8_t IST8310_Address_List[IST8310_ADDRESS_SUM] = {
 
 /* internal function */
 static bool DevIST8310_Get_ID(DevIST8310Obj_TypeDef *obj);
+static bool DevIST8310_SoftReset(DevIST8310Obj_TypeDef *obj);
 
 /* external function */
 static bool DevIST8310_Init(DevIST8310Obj_TypeDef *obj);
@@ -20,7 +21,7 @@ DevIST8310_TypeDef DevIST8310 = {
 
 static bool DevIST8310_Init(DevIST8310Obj_TypeDef *obj)
 {
-    if (obj == NULL)
+    if ((obj == NULL) || (obj->delay == NULL))
         return false;
 
     /* check device id */
@@ -34,9 +35,17 @@ static bool DevIST8310_Init(DevIST8310Obj_TypeDef *obj)
 
     /* final id check */
     if (obj->id != IST8310_DEV_ID)
+    {
+        obj->id = 0;
+        obj->dev_addr = 0;
         return false;
+    }
 
     /* soft reset */
+    if (!DevIST8310_SoftReset(obj))
+        return false;
+
+    obj->delay(50);
 
     return true;
 }
@@ -47,6 +56,22 @@ static bool DevIST8310_Get_ID(DevIST8310Obj_TypeDef *obj)
         return false;
 
     if ((!obj->bus_read(obj->bus_obj, obj->dev_addr, IST8310_REG_WHO_AM_I, &obj->id, (uint16_t)1)))
+        return false;
+
+    return true;
+}
+
+static bool DevIST8310_SoftReset(DevIST8310Obj_TypeDef *obj)
+{
+    IST8310_Control2_TypeDef ctl2;
+
+    if ((obj == NULL) || (obj->dev_addr == 0) || (obj->bus_obj == NULL) || (obj->bus_write == NULL))
+        return false;
+
+    ctl2.val = 0;
+    ctl2.bit.soft_reset = 1;
+
+    if (!obj->bus_write(obj->bus_obj, obj->dev_addr, IST8310_REG_CTRL_2, , (uint16_t)1))
         return false;
 
     return true;

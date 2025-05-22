@@ -33,12 +33,34 @@ typedef void (*IST8310_Delay_ms)(uint32_t ms);
 #define IST8310_REG_STATUS_2    0x09
 #define IST8310_REG_CTRL_1      0x0A
 #define IST8310_REG_CTRL_2      0x0B
+#define IST8310_REG_SELFTEST    0x0C
 #define IST8310_REG_TEMP_L      0x1C
 #define IST8310_REG_TEMP_H      0x1D
 #define IST8310_REG_AVGCNTL     0x41
 #define IST8310_REG_PDCNTL      0x42
 
 #define IST8310_DEV_ID          0x10
+
+typedef enum
+{
+    Stand_By = 0,
+    Single_Measurement,
+} IST8310_Control1_Mode_TypeDef;
+
+typedef enum
+{
+    Drdy_Act_L = 0, /* drdy pin active low */
+    Drdy_Act_H,     /* drdy pin active high */
+} IST8310_Drdy_PinPolarity_TypeDef;
+
+typedef enum
+{
+    Avg_None = 0,
+    Avg_2_Times = 1,
+    Avg_4_Times = 2,    /* default */
+    Avg_8_Times = 3,
+    Avg_16_Times = 4,
+} IST8310_AverageTime_TypeDef;
 
 typedef union
 {
@@ -63,6 +85,55 @@ typedef union
         uint8_t res2 : 4;   /* bit4 ~ bit7 */
     } bit;
 } IST8310_Status2_TypeDef;
+
+typedef union
+{
+    uint8_t val;
+
+    struct
+    {
+        uint8_t mode : 4;   /* bit0 ~ bit3 mode read & write */
+        uint8_t res  : 4;   /* bit4 ~ bit7 */
+    } bit;
+} IST8310_Control1_TypeDef;
+
+typedef union
+{
+    uint8_t val;
+
+    struct
+    {
+        uint8_t soft_reset          : 1;    /* bit0 read & write default 0 */
+        uint8_t res_1               : 1;    /* bit1 */
+        uint8_t drdy_pin_polarity   : 1;    /* bit2 read & write drdy pin active level default 1 */
+        uint8_t drdy_enable         : 1;    /* bit3 read & write drdy output pin enable default 1 */
+        uint8_t res_2               : 4;    /* bit4 ~ bit7 */
+    } bit;
+} IST8310_Control2_TypeDef;
+
+typedef union
+{
+    uint8_t val;
+
+    struct
+    {
+        uint8_t res_1       : 6;    /* bit0 ~ bit5 */
+        uint8_t self_test   : 1;    /* bit6 read & write self test enable */
+        uint8_t res_2       : 1;    /* bit7 */
+    } bit;
+} IST8310_SelfTest_TypeDef;
+
+typedef union
+{
+    uint8_t val;
+
+    struct
+    {
+        uint8_t xz_avg_time : 3;    /* bit0 ~ bit2 read & write Average times for x & z sensor data */
+        uint8_t y_avg_time  : 3;    /* bit3 ~ bit5 read & write Average times for y sensor data */
+        uint8_t res         : 2;    /* bit6 ~ bit7 */
+    } bit;
+} IST8310_AvgControl_TypeDef;
 
 typedef struct
 {
