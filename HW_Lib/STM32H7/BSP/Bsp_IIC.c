@@ -35,12 +35,12 @@ static bool BspIIC_Init(BspIICObj_TypeDef *obj)
             (obj->handle == NULL))
             return false;
 
-        if (obj->init && (BspIIC_HandleList[BspIIC_Instance_I2C_2] != NULL))
-            return true;
-
         switch((uint8_t)(obj->instance_id))
         {
             case BspIIC_Instance_I2C_2:
+                if (obj->init && (BspIIC_HandleList[BspIIC_Instance_I2C_2] != NULL))
+                    return true;
+
                 To_IIC_PeriphCLKInitType(obj->PeriphClkInitStruct)->PeriphClockSelection = RCC_PERIPHCLK_I2C2;
                 To_IIC_PeriphCLKInitType(obj->PeriphClkInitStruct)->I2c123ClockSelection = RCC_I2C123CLKSOURCE_D2PCLK1;
                 if (HAL_RCCEx_PeriphCLKConfig(To_IIC_PeriphCLKInitType(obj->PeriphClkInitStruct)) != HAL_OK)
@@ -61,7 +61,7 @@ static bool BspIIC_Init(BspIICObj_TypeDef *obj)
                 __HAL_RCC_I2C2_CLK_ENABLE();
                 
                 To_IIC_Handle_Ptr(obj->handle)->Instance = I2C2;
-                To_IIC_Handle_Ptr(obj->handle)->Init.Timing = 0x10909CEC;
+                To_IIC_Handle_Ptr(obj->handle)->Init.Timing = 0x00702D95;
                 To_IIC_Handle_Ptr(obj->handle)->Init.OwnAddress1 = 0;
                 To_IIC_Handle_Ptr(obj->handle)->Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
                 To_IIC_Handle_Ptr(obj->handle)->Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;

@@ -56,8 +56,15 @@ extern const uint8_t HWVer[3];
 #define IIC2_SCK_PIN GPIO_PIN_10
 
 #define BaroBus_Handle_Size I2C_HandleType_Size
-extern BspIICObj_TypeDef Baro_BusCfg;
-extern BspIICObj_TypeDef Mag_BusCfg;
+#define MagBus_Handle_Size I2C_HandleType_Size
+
+#define BaroBus_PeriphClk_Size I2C_PeriphCLKInitType_Size
+#define MagBus_PeriphClk_Size I2C_PeriphCLKInitType_Size
+
+extern BspIICObj_TypeDef IIC_BusCfg;
+
+#define Mag_BusCfg IIC_BusCfg
+#define Baro_BusCfg IIC_BusCfg
 
 /* Serial Pin */
 #define UART4_TX_PORT GPIOB

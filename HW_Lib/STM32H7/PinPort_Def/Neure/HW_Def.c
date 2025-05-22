@@ -98,7 +98,7 @@ BspGPIO_Obj_TypeDef Uart1_RxPin = {
     .alternate = GPIO_AF7_USART1,
 };
 
-BspIIC_PinConfig_TypeDef SrvBaro_BusPin = {
+BspIIC_PinConfig_TypeDef IIC2_BusPin = {
     .pin_Alternate = GPIO_AF4_I2C2,
     .port_sda = IIC2_SDA_PORT,
     .port_sck = IIC2_SCK_PORT,
@@ -130,16 +130,10 @@ BspSPI_Config_TypeDef IMU_BusCfg = {
     }
 };
 
-BspIICObj_TypeDef Baro_BusCfg = {
+BspIICObj_TypeDef IIC_BusCfg = {
     .init = false,
     .instance_id = BspIIC_Instance_I2C_2,
-    .Pin = &SrvBaro_BusPin,
-};
-
-BspIICObj_TypeDef Mag_BusCfg = {
-    .init = false,
-    .instance_id = BspIIC_Instance_I2C_2,
-    .Pin = &SrvBaro_BusPin,
+    .Pin = &IIC2_BusPin,
 };
 
 void BspQSPI_Pin_Init(void)

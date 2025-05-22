@@ -15,6 +15,8 @@ typedef bool (*IST8310_Bus_Write)(void *bus_obj, uint8_t dev_addr, uint8_t reg, 
 typedef uint32_t (*IST8310_Get_Tick)(void);
 typedef void (*IST8310_Delay_ms)(uint32_t ms);
 
+#define IST8310_ADDRESS_SUM     4
+
 #define IST8310_I2C_ADDR_1      0x0C
 #define IST8310_I2C_ADDR_2      0x0D
 #define IST8310_I2C_ADDR_3      0x0E
@@ -65,6 +67,7 @@ typedef union
 typedef struct
 {
     bool init_state;
+    uint8_t dev_addr;
     uint8_t id;
 
     IST8310_Get_Tick get_tick;

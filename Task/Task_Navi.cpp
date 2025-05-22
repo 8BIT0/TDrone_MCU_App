@@ -20,7 +20,7 @@
 #define NAVI_INFO(fmt, ...) Debug_Print(&DebugPort, NAVI_TAG, fmt, ##__VA_ARGS__)
 
 #define BARO_SAMPLE_RATE 200    /* unit: Hz */
-#define MAG_SAMPLE_RATE  200    /* unit: Hz */
+#define MAG_SAMPLE_RATE  100    /* unit: Hz */
 #define FLOW_SAMPLE_RATE 50     /* unit: Hz */
 #define TOF_SAMPLE_RATE  100    /* unit: Hz */
 
@@ -64,7 +64,7 @@ void TaskNavi_Init(uint32_t period)
     TaskNavi_Monitor.baro_sample_period = (uint32_t)(1000 / BARO_SAMPLE_RATE);
 
     /* Mag  init */
-    /* Max sample rate 200Hz */
+    /* Max sample rate 100Hz */
     TaskNavi_Monitor.init_state.bit.mag = SrvMag.init();
     TaskNavi_Monitor.mag_sample_period = (uint32_t)(1000 / MAG_SAMPLE_RATE);
 
