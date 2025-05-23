@@ -14,18 +14,18 @@ typedef enum
     Mag_Axis_X = 0,
     Mag_Axis_Y,
     Mag_Axis_Z,
-    Mag_Axis_Num,
+    Mag_Axis_Sum,
 } MagAxis_TypeDef;
 
 typedef struct
 {
     uint32_t time_stamp;
 
-    int16_t raw_mag[Mag_Axis_Num];
-    int16_t raw_mag_offset[Mag_Axis_Num];
+    int16_t raw_mag[Mag_Axis_Sum];
+    int16_t raw_mag_offset[Mag_Axis_Sum];
     int16_t raw_mag_temp;
           
-    float mag[Mag_Axis_Num];
+    float mag[Mag_Axis_Sum];
     float mag_temp;
 } MagData_TypeDef;
 

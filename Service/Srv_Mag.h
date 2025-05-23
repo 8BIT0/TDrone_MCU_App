@@ -14,8 +14,8 @@ typedef struct
 {
     uint32_t time_stamp;
 
-    float raw_mag[Mag_Axis_Num];    /* raw mag data from device */
-    float fit_mag[Mag_Axis_Num];    /* after ellipsoid fitting mag data */
+    float raw_mag[Mag_Axis_Sum];    /* raw mag data from device */
+    float fit_mag[Mag_Axis_Sum];    /* after ellipsoid fitting mag data */
 } SrvMag_Data_TypeDef;
 
 typedef struct

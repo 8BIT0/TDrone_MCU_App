@@ -138,7 +138,7 @@ static bool DevIST8310_Set_Drdy(DevIST8310Obj_TypeDef *obj)
 static bool DevIST8310_Sample(DevIST8310Obj_TypeDef *obj)
 {
     IST8310_Status1_TypeDef status;
-    uint8_t mag_tmp[Mag_Axis_Num * 2];
+    uint8_t mag_tmp[Mag_Axis_Sum * 2];
     uint8_t temp_tmp[2];
     volatile uint32_t sys_time = 0;
     uint8_t read_tmp = 0;
@@ -173,7 +173,7 @@ static bool DevIST8310_Sample(DevIST8310Obj_TypeDef *obj)
 
     /* read mag data */
     obj->data.time_stamp = obj->get_tick();
-    if (!obj->bus_read(obj->bus_obj, obj->dev_addr, IST8310_REG_MAG_X_L, mag_tmp, (uint16_t)(Mag_Axis_Num * 2)) || \
+    if (!obj->bus_read(obj->bus_obj, obj->dev_addr, IST8310_REG_MAG_X_L, mag_tmp, (uint16_t)(Mag_Axis_Sum * 2)) || \
         !obj->bus_read(obj->bus_obj, obj->dev_addr, IST8310_REG_TEMP_L, temp_tmp, (uint16_t)2))
     {
         obj->data.time_stamp = 0;
@@ -183,7 +183,7 @@ static bool DevIST8310_Sample(DevIST8310Obj_TypeDef *obj)
 
     DevIST8310_Prepare_Measure(obj);
     /* set mag axis data */
-    for (uint8_t i = Mag_Axis_X; i < Mag_Axis_Num; i++)
+    for (uint8_t i = Mag_Axis_X; i < Mag_Axis_Sum; i++)
     {
         obj->data.raw_mag[i] = (int16_t)(mag_tmp[i * 2 + 1] << 8) | mag_tmp[i * 2];
 
@@ -219,4 +219,6 @@ static bool DevIST8310_Prepare_Measure(DevIST8310Obj_TypeDef *obj)
 
     if (!obj->bus_write(obj->bus_obj, obj->dev_addr, IST8310_REG_CTRL_1, &ctl1.val, (uint16_t)1))
         return false;
+
+    return true;
 }

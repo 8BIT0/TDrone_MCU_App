@@ -101,8 +101,8 @@ static bool SrvMag_Init(void)
 
 static bool SrvMag_Sample(void)
 {
-    float raw_mag[Mag_Axis_Num];
-    float elli_fix_mag[Mag_Axis_Num];
+    float raw_mag[Mag_Axis_Sum];
+    float elli_fix_mag[Mag_Axis_Sum];
     MagData_TypeDef dev_mag_data;
 
     memset(&dev_mag_data, 0, sizeof(MagData_TypeDef));
@@ -134,7 +134,7 @@ static void SrvMag_EllipsoidFitting_Comput(float *p_mag_in, float *p_mag_out)
 {
     if (!Monitor.init_state || (p_mag_in == NULL) || (p_mag_out == NULL))
     {
-        memcpy(p_mag_out, p_mag_in, sizeof(float) * Mag_Axis_Num);
+        memcpy(p_mag_out, p_mag_in, sizeof(float) * Mag_Axis_Sum);
         return;
     }
 }
