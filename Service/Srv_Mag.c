@@ -1,16 +1,13 @@
 #include "Srv_Mag.h"
 #include "Srv_OsCommon.h"
 #include "Storage.h"
-#include "Dev_IST8310.h"
 #include "error_log.h"
 #include "HW_Def.h"
-
-#define MagModule_Reinit_Max_Cnt    5
 
 typedef struct
 {
     bool init_state;
-    uint8_t reinit_cnt;
+    SrvMag_Data_TypeDef data;
 
     void *dev_obj;
     bool (*dev_sample)(void *dev_obj);
@@ -20,7 +17,10 @@ typedef struct
 /* internal variable */
 static SrvMagMonitor_TypeDef Monitor = {
     .init_state = false,
-    .reinit_cnt = MagModule_Reinit_Max_Cnt,
+
+    .dev_obj = NULL,
+    .dev_sample = NULL,
+    .dev_get = NULL,
 };
 static DevIST8310Obj_TypeDef IST8310Obj;
 
@@ -31,10 +31,12 @@ static void SrvMag_EllipsoidFitting_Comput(float *p_mag_in, float *p_mag_out);
 /* external function */
 static bool SrvMag_Init(void);
 static bool SrvMag_Sample(void);
+static bool SrvMag_GetData(SrvMag_Data_TypeDef *p_data);
 
 SrvMag_TypeDef SrvMag = {
-    .init = SrvMag_Init,
+    .init   = SrvMag_Init,
     .sample = SrvMag_Sample,
+    .get    = SrvMag_GetData,
 };
 
 static bool SrvMag_BusInit(void)
@@ -77,6 +79,7 @@ static bool SrvMag_Init(void)
     /* load ellipsoid fitting parameter */
 
     /* device init */
+    memset(&IST8310Obj, 0, sizeof(DevIST8310Obj_TypeDef));
     IST8310Obj.init_state = false;
     IST8310Obj.bus_obj = (void *)&Mag_BusCfg;
     IST8310Obj.bus_write = (IST8310_Bus_Write)MagBus.write;
@@ -93,6 +96,7 @@ static bool SrvMag_Init(void)
     Monitor.dev_get = (bool (*)(void *, MagData_TypeDef *))DevIST8310.get;
 
     Monitor.init_state = true;
+    memset(&Monitor.data, 0, sizeof(SrvMag_Data_TypeDef));
     return true;
 }
 
@@ -100,9 +104,9 @@ static bool SrvMag_Sample(void)
 {
     float raw_mag[Mag_Axis_Num];
     float elli_fix_mag[Mag_Axis_Num];
-    MagData_TypeDef mag_data;
+    MagData_TypeDef dev_mag_data;
 
-    memset(&mag_data, 0, sizeof(MagData_TypeDef));
+    memset(&dev_mag_data, 0, sizeof(MagData_TypeDef));
     memset(raw_mag, 0, sizeof(raw_mag));
     memset(elli_fix_mag, 0, sizeof(elli_fix_mag));
 
@@ -113,11 +117,16 @@ static bool SrvMag_Sample(void)
 
     /* sample and get data */
     if (!Monitor.dev_sample(Monitor.dev_obj) || \
-        !Monitor.dev_get(Monitor.dev_obj, &mag_data))
+        !Monitor.dev_get(Monitor.dev_obj, &dev_mag_data))
         return false;
 
     /* doing ellipsoid fitting */
     SrvMag_EllipsoidFitting_Comput(raw_mag, elli_fix_mag);
+
+    /* save data */
+    Monitor.data.time_stamp = dev_mag_data.time_stamp ;
+    memcpy(Monitor.data.raw_mag, raw_mag, sizeof(raw_mag));
+    memcpy(Monitor.data.fit_mag, elli_fix_mag, sizeof(elli_fix_mag));
 
     return true;
 }
@@ -129,4 +138,14 @@ static void SrvMag_EllipsoidFitting_Comput(float *p_mag_in, float *p_mag_out)
         memcpy(p_mag_out, p_mag_in, sizeof(float) * Mag_Axis_Num);
         return;
     }
+}
+
+static bool SrvMag_GetData(SrvMag_Data_TypeDef *p_data)
+{
+
+    if (!Monitor.init_state || (p_data == NULL))
+        return false;
+
+    memcpy(&p_data, &Monitor.data, sizeof(SrvMag_Data_TypeDef));
+    return true;
 }

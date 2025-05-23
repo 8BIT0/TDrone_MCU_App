@@ -23,6 +23,7 @@
 #define MAG_SAMPLE_RATE  100    /* unit: Hz */
 #define FLOW_SAMPLE_RATE 50     /* unit: Hz */
 #define TOF_SAMPLE_RATE  100    /* unit: Hz */
+#define RATE_To_PERIOD(rate)    ((uint32_t)(1000 / rate))
 
 using namespace std;
 using namespace Eigen;
@@ -61,20 +62,20 @@ void TaskNavi_Init(uint32_t period)
     /* Baro init */
     /* Max sample rate 100Hz */
     TaskNavi_Monitor.init_state.bit.baro = SrvBaro.init();
-    TaskNavi_Monitor.baro_sample_period = (uint32_t)(1000 / BARO_SAMPLE_RATE);
+    TaskNavi_Monitor.baro_sample_period = RATE_To_PERIOD(BARO_SAMPLE_RATE);
 
     /* Mag  init */
     /* Max sample rate 100Hz */
     TaskNavi_Monitor.init_state.bit.mag = SrvMag.init();
-    TaskNavi_Monitor.mag_sample_period = (uint32_t)(1000 / MAG_SAMPLE_RATE);
+    TaskNavi_Monitor.mag_sample_period = RATE_To_PERIOD(MAG_SAMPLE_RATE);
 
     /* Flow init */
     TaskNavi_Monitor.init_state.bit.flow = false;
-    TaskNavi_Monitor.flow_sample_period = (uint32_t)(1000 / FLOW_SAMPLE_RATE);
+    TaskNavi_Monitor.flow_sample_period = RATE_To_PERIOD(FLOW_SAMPLE_RATE);
 
     /* ToF  init */
     TaskNavi_Monitor.init_state.bit.tof = false;
-    TaskNavi_Monitor.tof_sample_period = (uint32_t)(1000 / TOF_SAMPLE_RATE);
+    TaskNavi_Monitor.tof_sample_period = RATE_To_PERIOD(TOF_SAMPLE_RATE);
 
     /* pipe sensor init state to data hub */
 
@@ -159,9 +160,11 @@ static void TaskNavi_Module_Sample(uint32_t sys_time)
     TaskNavi_Monitor.sample_state.val = 0;
     SrvIMU_Data_TypeDef imu_data;
     SrvBaro_Data_TypeDef baro_data;
+    SrvMag_Data_TypeDef mag_data;
 
-    memset(&imu_data, 0, sizeof(SrvIMU_Data_TypeDef));
+    memset(&imu_data,  0, sizeof(SrvIMU_Data_TypeDef));
     memset(&baro_data, 0, sizeof(SrvBaro_Data_TypeDef));
+    memset(&mag_data,  0, sizeof(SrvMag_Data_TypeDef));
 
     /* sample imu */
     if (TaskNavi_ModuleSample_Trigger(sys_time, &TaskNavi_Monitor.imu_sampled_time, TaskNavi_Monitor.imu_sample_period) && SrvIMU.sample())
@@ -172,6 +175,8 @@ static void TaskNavi_Module_Sample(uint32_t sys_time)
         TaskNavi_Monitor.sample_state.bit.baro = SrvBaro.get(&baro_data);
 
     /* sample mag */
+    if (TaskNavi_ModuleSample_Trigger(sys_time, &TaskNavi_Monitor.mag_sampled_time, TaskNavi_Monitor.mag_sample_period) && SrvMag.sample())
+        TaskNavi_Monitor.sample_state.bit.mag = SrvMag.get(&mag_data);
 
     /* sample ToF */
 

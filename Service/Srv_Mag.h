@@ -8,12 +8,21 @@ extern "C" {
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
+#include "Dev_IST8310.h"
+
+typedef struct
+{
+    uint32_t time_stamp;
+
+    float raw_mag[Mag_Axis_Num];    /* raw mag data from device */
+    float fit_mag[Mag_Axis_Num];    /* after ellipsoid fitting mag data */
+} SrvMag_Data_TypeDef;
 
 typedef struct
 {
     bool (*init)(void);
     bool (*sample)(void);
-    bool (*calib)(void);
+    bool (*get)(SrvMag_Data_TypeDef *p_data);
 } SrvMag_TypeDef;
 
 extern SrvMag_TypeDef SrvMag;
