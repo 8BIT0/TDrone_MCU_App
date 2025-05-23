@@ -35,6 +35,9 @@ using namespace Eigen;
     z Axis -> Yaw   anticlock wise rotate positice
 */
 
+/* internal variable */
+static NaviData_TypeDef NaviData;
+
 /* internal function */
 static void TaskNavi_Module_Sample(uint32_t sys_time);
 static void TaskNavi_Update_BaroAltEst(float baro, float acc_dif, RelMov_TypeDef *baro_alt);
@@ -51,8 +54,9 @@ void TaskNavi_Init(uint32_t period)
     TaskNavi_Monitor.max_sample_period = (1000 / period);
     TaskNavi_Monitor.period = period;
     
-    memset(&Attitude_smp_DataPipe, 0, sizeof(Attitude_smp_DataPipe));
-    memset(&TaskNavi_Monitor, 0, sizeof(TaskNavi_Monitor_TypeDef));
+    memset(&Attitude_smp_DataPipe,  0, sizeof(Attitude_smp_DataPipe));
+    memset(&TaskNavi_Monitor,       0, sizeof(TaskNavi_Monitor_TypeDef));
+    memset(&NaviData,               0, sizeof(NaviData_TypeDef));
 
     /* IMU  init */
     /* Max sample rate 1KHz */
@@ -181,6 +185,10 @@ static void TaskNavi_Module_Sample(uint32_t sys_time)
     /* sample ToF */
 
     /* sample Optical Flow */
+
+    /* fill navi data */
+
+    /* pipe data to data hub */
 }
 
 static bool TaskNavi_ModuleSample_Trigger(uint32_t sys_time, uint32_t *sample_time, uint32_t period)
