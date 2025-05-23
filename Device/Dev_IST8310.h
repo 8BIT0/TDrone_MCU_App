@@ -160,7 +160,7 @@ typedef struct
 {
     bool (*init)(DevIST8310Obj_TypeDef *obj);
     bool (*sample)(DevIST8310Obj_TypeDef *obj);
-    MagData_TypeDef (*get)(DevIST8310Obj_TypeDef *obj, MagData_TypeDef *p_data);
+    bool (*get)(DevIST8310Obj_TypeDef *obj, MagData_TypeDef *p_data);
     bool (*reset)(DevIST8310Obj_TypeDef *obj);
     bool (*set_drdy)(DevIST8310Obj_TypeDef *obj);
 } DevIST8310_TypeDef;
