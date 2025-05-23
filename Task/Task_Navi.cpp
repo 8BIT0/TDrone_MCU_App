@@ -108,7 +108,6 @@ void TaskNavi_Core(void const *arg)
 {
     uint32_t prv_time = SrvOsCommon.get_os_ms();
     uint32_t sys_time = 0;
-    RelMov_TypeDef rel_alt;
     AlgoAttData_TypeDef algo_att;
 
     MadgwickAHRSInit(&algo_att);
@@ -120,6 +119,8 @@ void TaskNavi_Core(void const *arg)
 
         /* sample sensor */
         TaskNavi_Module_Sample(sys_time);
+
+        /* pipe data to data hub */
 
         /* check imu data update freq on test */
         SrvOsCommon.precise_delay(&prv_time, TaskNavi_Monitor.period);
@@ -187,8 +188,13 @@ static void TaskNavi_Module_Sample(uint32_t sys_time)
     /* sample Optical Flow */
 
     /* fill navi data */
-
-    /* pipe data to data hub */
+    NaviData.time_stamp = sys_time;
+    for (uint8_t i = 0; i < Axis_Sum; i++)
+    {
+        NaviData.acc[i] = imu_data.flt_acc[i];
+        NaviData.gyr[i] = imu_data.flt_gyr[i];
+        NaviData.mag[i] = mag_data.fit_mag[i];
+    }
 }
 
 static bool TaskNavi_ModuleSample_Trigger(uint32_t sys_time, uint32_t *sample_time, uint32_t period)
