@@ -44,6 +44,12 @@ typedef void (*IST8310_Delay_ms)(uint32_t ms);
 
 typedef enum
 {
+    IST8310_PulseDuration_Long = 0b01,
+    IST8310_PulseDuration_Normal = 0b11,
+} IST8310_PulseDuration_TypeDef;
+
+typedef enum
+{
     Stand_By = 0,
     Single_Measurement,
 } IST8310_Control1_Mode_TypeDef;
@@ -136,14 +142,22 @@ typedef union
     } bit;
 } IST8310_AvgControl_TypeDef;
 
+typedef union
+{
+    uint8_t val;
+
+    struct
+    {
+        uint8_t res             : 6;    /* bit0 ~ bit5 */
+        uint8_t pulse_duration  : 2;    /* bit6 ~ bit7 duration selection */
+    } bit;
+} IST8310_PDControl_TypeDef;
+
 typedef struct
 {
     bool init_state;
     uint8_t dev_addr;
     uint8_t id;
-
-    bool hw_drdy_en;
-    bool hw_drdy;
 
     IST8310_Get_Tick get_tick;
     IST8310_Delay_ms delay;

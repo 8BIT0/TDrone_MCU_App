@@ -10,12 +10,12 @@ static const uint8_t IST8310_Address_List[IST8310_ADDRESS_SUM] = {
 
 /* internal function */
 static bool DevIST8310_Get_ID(DevIST8310Obj_TypeDef *obj);
-static bool DevIST8310_Get_Drdy(DevIST8310Obj_TypeDef *obj);
+static bool DevIST8310_Prepare_Measure(DevIST8310Obj_TypeDef *obj);
 
 /* external function */
 static bool DevIST8310_Init(DevIST8310Obj_TypeDef *obj);
 static bool DevIST8310_SoftReset(DevIST8310Obj_TypeDef *obj);
-static bool DevIST8310_Set_Drdy(DevIST8310Obj_TypeDef *obj);
+static bool DevIST8310_Set_Drdy(DevIST8310Obj_TypeDef *obj);    /* when int pin is attach to mcu */
 static bool DevIST8310_Sample(DevIST8310Obj_TypeDef *obj);
 static bool DevIST8310_GetData(DevIST8310Obj_TypeDef *obj, MagData_TypeDef *p_data);
 
@@ -29,9 +29,9 @@ DevIST8310_TypeDef DevIST8310 = {
 
 static bool DevIST8310_Init(DevIST8310Obj_TypeDef *obj)
 {
-    IST8310_Control1_TypeDef ctl1;
     IST8310_Control2_TypeDef ctl2;
     IST8310_AvgControl_TypeDef avg;
+    IST8310_PDControl_TypeDef pdctl;
     uint8_t read_tmp = 0;
 
     if ((obj == NULL) || \
@@ -64,32 +64,23 @@ static bool DevIST8310_Init(DevIST8310Obj_TypeDef *obj)
     if (!DevIST8310_SoftReset(obj))
         return false;
 
-    /* sample mode setting */
-    ctl1.val = 0;
-    ctl1.bit.mode = Single_Measurement;
-
-    if (!obj->bus_write(obj->bus_obj, obj->dev_addr, IST8310_REG_CTRL_1, &ctl1.val, (uint16_t)1) || \
-        !obj->bus_read(obj->bus_obj, obj->dev_addr, IST8310_REG_CTRL_1, &read_tmp, (uint16_t)1) || \
-        (read_tmp!= ctl1.val))
-        return false;
-
     /* drdy pin setting */
     ctl2.val = 0;
-    obj->hw_drdy = false;
-    if (!obj->hw_drdy_en)
-    {
-        ctl2.bit.drdy_pin_polarity = Drdy_Act_L;
-        ctl2.bit.drdy_enable = false;
-    }
-    else
-    {
-        ctl2.bit.drdy_pin_polarity = Drdy_Act_H;
-        ctl2.bit.drdy_enable = true;
-    }
+    ctl2.bit.drdy_pin_polarity = Drdy_Act_H;
+    ctl2.bit.drdy_enable = true;
 
     if (!obj->bus_write(obj->bus_obj, obj->dev_addr, IST8310_REG_CTRL_2, &ctl2.val, (uint16_t)1) || \
         !obj->bus_read(obj->bus_obj, obj->dev_addr, IST8310_REG_CTRL_2, &read_tmp, (uint16_t)1) || \
         (read_tmp != ctl2.val))
+        return false;
+
+    /* set pulse duration */
+    pdctl.val = 0;
+    pdctl.bit.pulse_duration = IST8310_PulseDuration_Normal;
+
+    if (!obj->bus_write(obj->bus_obj, obj->dev_addr, IST8310_REG_PDCNTL, &pdctl.val, (uint16_t)1) || \
+        !obj->bus_read(obj->bus_obj, obj->dev_addr, IST8310_REG_PDCNTL, &read_tmp, (uint16_t)1) || \
+        (read_tmp != pdctl.val))
         return false;
 
     /* sample average setting */
@@ -103,6 +94,8 @@ static bool DevIST8310_Init(DevIST8310Obj_TypeDef *obj)
         return false;
 
     obj->init_state = true;
+
+    DevIST8310_Prepare_Measure(obj);
     return true;
 }
 
@@ -130,32 +123,16 @@ static bool DevIST8310_SoftReset(DevIST8310Obj_TypeDef *obj)
     if (!obj->bus_write(obj->bus_obj, obj->dev_addr, IST8310_REG_CTRL_2, &ctl2.val, (uint16_t)1))
         return false;
 
-    obj->delay(50);
+    obj->delay(100);
     return true;
 }
 
 static bool DevIST8310_Set_Drdy(DevIST8310Obj_TypeDef *obj)
 {
-    if ((obj == NULL) || !obj->init_state || !obj->hw_drdy_en)
-        return false;
-
-    obj->hw_drdy = true;
-    return true;
-}
-
-static bool DevIST8310_Get_Drdy(DevIST8310Obj_TypeDef *obj)
-{
-    bool state = false;
-
     if ((obj == NULL) || !obj->init_state)
         return false;
 
-    if (!obj->hw_drdy_en)
-        return true;
-
-    state = obj->hw_drdy;
-    obj->hw_drdy = false;
-    return state;
+    return true;
 }
 
 static bool DevIST8310_Sample(DevIST8310Obj_TypeDef *obj)
@@ -163,24 +140,32 @@ static bool DevIST8310_Sample(DevIST8310Obj_TypeDef *obj)
     IST8310_Status1_TypeDef status;
     uint8_t mag_tmp[Mag_Axis_Num * 2];
     uint8_t temp_tmp[2];
+    volatile uint32_t sys_time = 0;
+    uint8_t read_tmp = 0;
 
-    if ((obj == NULL) || !obj->init_state || (obj->bus_obj == NULL) || (obj->bus_read == NULL) || (obj->get_tick == NULL))
+    if ((obj == NULL) || \
+        !obj->init_state || \
+        (obj->bus_obj == NULL) || \
+        (obj->bus_read == NULL) || \
+        (obj->get_tick == NULL) || \
+        (obj->get_tick == NULL))
         return false;
 
-    /* check data ready */
-    if (!obj->hw_drdy_en)
+    /* check data ready register */
+    sys_time = obj->get_tick();
+    status.val = 0;
+    while (1)
     {
-        status.val = 0;
+        if ((!obj->bus_read(obj->bus_obj, obj->dev_addr, IST8310_REG_STATUS_1, &status.val, (uint16_t)1)) || \
+            (obj->get_tick() - sys_time > 10))
+        {
+            obj->bus_read(obj->bus_obj, obj->dev_addr, IST8310_REG_STATUS_2, &read_tmp, (uint16_t)1);
+            DevIST8310_Prepare_Measure(obj);
+            return false;
+        }
 
-        /* check register */
-        if (!obj->bus_read(obj->bus_obj, obj->dev_addr, IST8310_REG_STATUS_1, &status.val, (uint16_t)1) || (status.bit.drdy == 0))
-            return false;
-    }
-    else
-    {
-        /* check signal on int pin */
-        if (!DevIST8310_Get_Drdy(obj))
-            return false;
+        if (status.bit.drdy)
+            break;
     }
 
     memset(mag_tmp, 0, sizeof(mag_tmp));
@@ -192,25 +177,26 @@ static bool DevIST8310_Sample(DevIST8310Obj_TypeDef *obj)
         !obj->bus_read(obj->bus_obj, obj->dev_addr, IST8310_REG_TEMP_L, temp_tmp, (uint16_t)2))
     {
         obj->data.time_stamp = 0;
+        DevIST8310_Prepare_Measure(obj);
         return false;
     }
 
+    DevIST8310_Prepare_Measure(obj);
     /* set mag axis data */
     for (uint8_t i = Mag_Axis_X; i < Mag_Axis_Num; i++)
     {
-        obj->data.raw_mag[i] = (mag_tmp[i * 2 + 1] << 8) | mag_tmp[i * 2];
+        obj->data.raw_mag[i] = (int16_t)(mag_tmp[i * 2 + 1] << 8) | mag_tmp[i * 2];
 
         /* convert unit */
-        obj->data.mag[i] = obj->data.raw_mag[i] * IST8310_MAG_FACTORY;
+        obj->data.mag[i] = (float)(obj->data.raw_mag[i] * IST8310_MAG_FACTORY);
     }
 
     /* set mag temperature */
-    obj->data.raw_mag_temp = (temp_tmp[1] << 8) | temp_tmp[0];
+    obj->data.raw_mag_temp = (int16_t)(temp_tmp[1] << 8) | temp_tmp[0];
 
     /* test */
     obj->data.mag_temp = obj->data.raw_mag_temp;
     obj->update_cnt ++;
-
     return true;
 }
 
@@ -221,4 +207,16 @@ static bool DevIST8310_GetData(DevIST8310Obj_TypeDef *obj, MagData_TypeDef *p_da
 
     memcpy(p_data, &(obj->data), sizeof(MagData_TypeDef));
     return true;
+}
+
+static bool DevIST8310_Prepare_Measure(DevIST8310Obj_TypeDef *obj)
+{
+    IST8310_Control1_TypeDef ctl1;
+
+    /* sample mode setting */
+    ctl1.val = 0;
+    ctl1.bit.mode = Single_Measurement;
+
+    if (!obj->bus_write(obj->bus_obj, obj->dev_addr, IST8310_REG_CTRL_1, &ctl1.val, (uint16_t)1))
+        return false;
 }

@@ -21,10 +21,10 @@ typedef struct
 {
     uint32_t time_stamp;
 
-    int32_t raw_mag[Mag_Axis_Num];
-    int32_t raw_mag_offset[Mag_Axis_Num];
-    int32_t raw_mag_temp;
-
+    int16_t raw_mag[Mag_Axis_Num];
+    int16_t raw_mag_offset[Mag_Axis_Num];
+    int16_t raw_mag_temp;
+          
     float mag[Mag_Axis_Num];
     float mag_temp;
 } MagData_TypeDef;

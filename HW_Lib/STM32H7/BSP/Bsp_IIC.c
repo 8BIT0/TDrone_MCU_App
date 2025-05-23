@@ -61,7 +61,7 @@ static bool BspIIC_Init(BspIICObj_TypeDef *obj)
                 __HAL_RCC_I2C2_CLK_ENABLE();
                 
                 To_IIC_Handle_Ptr(obj->handle)->Instance = I2C2;
-                To_IIC_Handle_Ptr(obj->handle)->Init.Timing = 0x00702D95;
+                To_IIC_Handle_Ptr(obj->handle)->Init.Timing = 0x00702991;
                 To_IIC_Handle_Ptr(obj->handle)->Init.OwnAddress1 = 0;
                 To_IIC_Handle_Ptr(obj->handle)->Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
                 To_IIC_Handle_Ptr(obj->handle)->Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;

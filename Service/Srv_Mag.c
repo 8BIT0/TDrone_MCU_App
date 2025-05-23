@@ -86,7 +86,6 @@ static bool SrvMag_Init(void)
     IST8310Obj.bus_read = (IST8310_Bus_Read)MagBus.read;
     IST8310Obj.delay = SrvOsCommon.delay_ms;
     IST8310Obj.get_tick = SrvOsCommon.get_os_ms;
-    IST8310Obj.hw_drdy_en = false;
     
     if (!DevIST8310.init(&IST8310Obj))
         return false;
@@ -142,7 +141,6 @@ static void SrvMag_EllipsoidFitting_Comput(float *p_mag_in, float *p_mag_out)
 
 static bool SrvMag_GetData(SrvMag_Data_TypeDef *p_data)
 {
-
     if (!Monitor.init_state || (p_data == NULL))
         return false;
 
