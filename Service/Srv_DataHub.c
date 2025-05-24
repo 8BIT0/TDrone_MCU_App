@@ -8,6 +8,7 @@ SrvDataHub_Monitor_TypeDef SrvDataHub_Monitor = {
 };
 
 /* Pipe Object */
+DataPipe_CreateDataObj(NaviData_TypeDef, Hub_Navi);
 DataPipe_CreateDataObj(SrvActuatorPipeData_TypeDef, Hub_Actuator);
 DataPipe_CreateDataObj(ControlData_TypeDef, Hub_Telemetry_Rc);
 DataPipe_CreateDataObj(RelMov_TypeDef, Hub_Alt);
@@ -17,8 +18,8 @@ DataPipe_CreateDataObj(bool, Hub_VCP_Attach_State);
 /* internal function */
 static void SrvDataHub_PipeRcTelemtryDataFinish_Callback(DataPipeObj_TypeDef *obj);
 static void SrvDataHub_Actuator_DataPipe_Finish_Callback(DataPipeObj_TypeDef *obj);
-// static void SrvDataHub_Pos_DataPipe_Finish_Callback(DataPipeObj_TypeDef *obj);
-static void SrvDataHub_VCPAttach_dataPipe_Finish_Callback(DataPipeObj_TypeDef *obj);
+static void SrvDataHub_VCPAttach_DataPipe_Finish_Callback(DataPipeObj_TypeDef *obj);
+static void SrvDataHub_NavData_DataPipe_Finish_Callback(DataPipeObj_TypeDef *obj);
 static void SrvDataHub_PipeConvertControlDataFinish_Callback(DataPipeObj_TypeDef *obj);
 
 /* external function */
@@ -26,7 +27,7 @@ static void SrvDataHub_Init(void);
 static bool SrvDataHub_Get_Arm(bool *arm);
 static bool SrvDataHub_Get_Failsafe(bool *failsafe);
 static bool SrvDataHub_Get_Telemetry_ControlData(ControlData_TypeDef *data);
-static bool SrvDataHub_Get_Attitude(uint32_t *time_stamp, float *pitch, float *roll, float *yaw, float *q0, float *q1, float *q2, float *q3);
+static bool SrvDataHub_Get_Attitude(uint32_t *time_stamp, float *pitch, float *roll, float *yaw, float *heading);
 static bool SrvDataHub_Get_VCPAttach_State(bool *state);
 static bool SrvDataHub_Get_CLI_State(bool *state);
 static bool SrvDataHub_Get_Upgrade_State(bool *state);
@@ -75,10 +76,16 @@ static void SrvDataHub_Init(void)
     Actuator_hub_DataPipe.trans_finish_cb = To_Pipe_TransFinish_Callback(SrvDataHub_Actuator_DataPipe_Finish_Callback);
     DataPipe_Enable(&Actuator_hub_DataPipe);
 
+    memset(DataPipe_DataObjAddr(Hub_Navi), 0, DataPipe_DataSize(Hub_Navi));
+    Navi_hub_DataPipe.data_addr = (uint32_t)DataPipe_DataObjAddr(Hub_Navi);
+    Navi_hub_DataPipe.data_size = DataPipe_DataSize(Hub_Navi);
+    Navi_hub_DataPipe.trans_finish_cb = To_Pipe_TransFinish_Callback(SrvDataHub_NavData_DataPipe_Finish_Callback);
+    DataPipe_Enable(&Navi_hub_DataPipe);
+
     memset(DataPipe_DataObjAddr(Hub_VCP_Attach_State), 0, DataPipe_DataSize(Hub_VCP_Attach_State));
     VCP_Connect_hub_DataPipe.data_addr = (uint32_t)DataPipe_DataObjAddr(Hub_VCP_Attach_State);
     VCP_Connect_hub_DataPipe.data_size = DataPipe_DataSize(Hub_VCP_Attach_State);
-    VCP_Connect_hub_DataPipe.trans_finish_cb = To_Pipe_TransFinish_Callback(SrvDataHub_VCPAttach_dataPipe_Finish_Callback);
+    VCP_Connect_hub_DataPipe.trans_finish_cb = To_Pipe_TransFinish_Callback(SrvDataHub_VCPAttach_DataPipe_Finish_Callback);
     DataPipe_Enable(&VCP_Connect_hub_DataPipe);
     
     memset(DataPipe_DataObjAddr(Hub_Cnv_CtlData), 0, DataPipe_DataSize(Hub_Cnv_CtlData));
@@ -105,85 +112,110 @@ static bool SrvDataHub_Set_CLI_State(bool state)
     return true;
 }
 
-static void SrvDataHub_VCPAttach_dataPipe_Finish_Callback(DataPipeObj_TypeDef *obj)
+static void SrvDataHub_VCPAttach_DataPipe_Finish_Callback(DataPipeObj_TypeDef *obj)
 {
-    if (obj == &VCP_Connect_hub_DataPipe)
-    {
-        SrvDataHub_Monitor.update_reg.bit.USB_VCP_attach = true;
+    if ((!SrvDataHub_Monitor.init_state) || (obj == NULL) || (obj != &VCP_Connect_hub_DataPipe))
+        return;
 
-        if (SrvDataHub_Monitor.inuse_reg.bit.USB_VCP_attach)
-            SrvDataHub_Monitor.inuse_reg.bit.USB_VCP_attach = false;
+    SrvDataHub_Monitor.update_reg.bit.USB_VCP_attach = true;
 
-        SrvDataHub_Monitor.data.VCP_Attach = DataPipe_DataObj(Hub_VCP_Attach_State);
+    if (SrvDataHub_Monitor.inuse_reg.bit.USB_VCP_attach)
+        SrvDataHub_Monitor.inuse_reg.bit.USB_VCP_attach = false;
 
-        SrvDataHub_Monitor.update_reg.bit.USB_VCP_attach = false;
-    }
+    SrvDataHub_Monitor.data.VCP_Attach = DataPipe_DataObj(Hub_VCP_Attach_State);
+
+    SrvDataHub_Monitor.update_reg.bit.USB_VCP_attach = false;
 }
 
 static void SrvDataHub_Actuator_DataPipe_Finish_Callback(DataPipeObj_TypeDef *obj)
 {
-    if (obj == &Actuator_hub_DataPipe)
-    {
-        SrvDataHub_Monitor.update_reg.bit.actuator = true;
+    if ((!SrvDataHub_Monitor.init_state) || (obj == NULL) || (obj != &Actuator_hub_DataPipe))
+        return;
+        
+    SrvDataHub_Monitor.update_reg.bit.actuator = true;
 
-        if (SrvDataHub_Monitor.inuse_reg.bit.actuator)
-            SrvDataHub_Monitor.inuse_reg.bit.actuator = false;
+    if (SrvDataHub_Monitor.inuse_reg.bit.actuator)
+        SrvDataHub_Monitor.inuse_reg.bit.actuator = false;
 
-        SrvDataHub_Monitor.data.actuator_update_time = DataPipe_DataObj(Hub_Actuator).time_stamp;
-        memcpy(SrvDataHub_Monitor.data.moto, DataPipe_DataObj(Hub_Actuator).moto, sizeof(SrvDataHub_Monitor.data.moto));
-        memcpy(SrvDataHub_Monitor.data.servo, DataPipe_DataObj(Hub_Actuator).servo, sizeof(SrvDataHub_Monitor.data.servo));
+    SrvDataHub_Monitor.data.actuator_update_time = DataPipe_DataObj(Hub_Actuator).time_stamp;
+    memcpy(SrvDataHub_Monitor.data.moto, DataPipe_DataObj(Hub_Actuator).moto, sizeof(SrvDataHub_Monitor.data.moto));
+    memcpy(SrvDataHub_Monitor.data.servo, DataPipe_DataObj(Hub_Actuator).servo, sizeof(SrvDataHub_Monitor.data.servo));
 
-        SrvDataHub_Monitor.update_reg.bit.actuator = false;
-    }
+    SrvDataHub_Monitor.update_reg.bit.actuator = false;
 }
 
 static void SrvDataHub_PipeRcTelemtryDataFinish_Callback(DataPipeObj_TypeDef *obj)
 {
-    if ((!SrvDataHub_Monitor.init_state) || (obj == NULL))
+    if ((!SrvDataHub_Monitor.init_state) || (obj == NULL) || (obj != &Receiver_hub_DataPipe))
         return;
 
-    if (obj == &Receiver_hub_DataPipe)
-    {
-        SrvDataHub_Monitor.update_reg.bit.rc_control_data = true;
+    SrvDataHub_Monitor.update_reg.bit.rc_control_data = true;
 
-        if (SrvDataHub_Monitor.inuse_reg.bit.rc_control_data)
-            SrvDataHub_Monitor.inuse_reg.bit.rc_control_data = false;
+    if (SrvDataHub_Monitor.inuse_reg.bit.rc_control_data)
+        SrvDataHub_Monitor.inuse_reg.bit.rc_control_data = false;
 
-        SrvDataHub_Monitor.data.RC_Control_Data = DataPipe_DataObj(Hub_Telemetry_Rc);
+    SrvDataHub_Monitor.data.RC_Control_Data = DataPipe_DataObj(Hub_Telemetry_Rc);
 
-        SrvDataHub_Monitor.update_reg.bit.rc_control_data = false;
-    }
+    SrvDataHub_Monitor.update_reg.bit.rc_control_data = false;
 }
 
 static void SrvDataHub_PipeConvertControlDataFinish_Callback(DataPipeObj_TypeDef *obj)
 {
-    if ((!SrvDataHub_Monitor.init_state) || (obj == NULL))
+    if ((!SrvDataHub_Monitor.init_state) || (obj == NULL) || (obj != &CtlData_hub_DataPipe))
         return;
 
-    if (obj == &CtlData_hub_DataPipe)
-    {
-        SrvDataHub_Monitor.update_reg.bit.cnv_control_data = true;
+    SrvDataHub_Monitor.update_reg.bit.cnv_control_data = true;
 
-        if (SrvDataHub_Monitor.inuse_reg.bit.cnv_control_data)
-            SrvDataHub_Monitor.inuse_reg.bit.cnv_control_data = false;
+    if (SrvDataHub_Monitor.inuse_reg.bit.cnv_control_data)
+        SrvDataHub_Monitor.inuse_reg.bit.cnv_control_data = false;
 
-        SrvDataHub_Monitor.data.cnvctl_data_time = SrvOsCommon.get_os_ms();
-        SrvDataHub_Monitor.data.arm = DataPipe_DataObj(Hub_Cnv_CtlData).arm;
-        SrvDataHub_Monitor.data.throttle_percent = DataPipe_DataObj(Hub_Cnv_CtlData).throttle_percent;
-        SrvDataHub_Monitor.data.failsafe = DataPipe_DataObj(Hub_Cnv_CtlData).failsafe;
-        SrvDataHub_Monitor.data.exp_gyr_x = DataPipe_DataObj(Hub_Cnv_CtlData).gyr_x;
-        SrvDataHub_Monitor.data.exp_gyr_y = DataPipe_DataObj(Hub_Cnv_CtlData).gyr_y;
-        SrvDataHub_Monitor.data.exp_gyr_z = DataPipe_DataObj(Hub_Cnv_CtlData).gyr_z;
-        SrvDataHub_Monitor.data.exp_pitch = DataPipe_DataObj(Hub_Cnv_CtlData).pitch;
-        SrvDataHub_Monitor.data.exp_roll = DataPipe_DataObj(Hub_Cnv_CtlData).roll;
+    SrvDataHub_Monitor.data.cnvctl_data_time = SrvOsCommon.get_os_ms();
+    SrvDataHub_Monitor.data.arm = DataPipe_DataObj(Hub_Cnv_CtlData).arm;
+    SrvDataHub_Monitor.data.throttle_percent = DataPipe_DataObj(Hub_Cnv_CtlData).throttle_percent;
+    SrvDataHub_Monitor.data.failsafe = DataPipe_DataObj(Hub_Cnv_CtlData).failsafe;
+    SrvDataHub_Monitor.data.exp_gyr_x = DataPipe_DataObj(Hub_Cnv_CtlData).gyr_x;
+    SrvDataHub_Monitor.data.exp_gyr_y = DataPipe_DataObj(Hub_Cnv_CtlData).gyr_y;
+    SrvDataHub_Monitor.data.exp_gyr_z = DataPipe_DataObj(Hub_Cnv_CtlData).gyr_z;
+    SrvDataHub_Monitor.data.exp_pitch = DataPipe_DataObj(Hub_Cnv_CtlData).pitch;
+    SrvDataHub_Monitor.data.exp_roll = DataPipe_DataObj(Hub_Cnv_CtlData).roll;
 
-        SrvDataHub_Monitor.update_reg.bit.cnv_control_data = false;
-    }
+    SrvDataHub_Monitor.update_reg.bit.cnv_control_data = false;
+}
+
+static void SrvDataHub_NavData_DataPipe_Finish_Callback(DataPipeObj_TypeDef *obj)
+{
+    if ((!SrvDataHub_Monitor.init_state) || (obj == NULL) || (obj != &Navi_hub_DataPipe))
+        return;
+
+    SrvDataHub_Monitor.update_reg.bit.navi_data  = true;
+
+    if (SrvDataHub_Monitor.inuse_reg.bit.navi_data)
+        SrvDataHub_Monitor.inuse_reg.bit.navi_data = false;
+
+    /* set data */
+    SrvDataHub_Monitor.data.navi_update_time = DataPipe_DataObj(Hub_Navi).time_stamp;
+    SrvDataHub_Monitor.data.navi_roll = DataPipe_DataObj(Hub_Navi).roll;
+    SrvDataHub_Monitor.data.navi_pitch = DataPipe_DataObj(Hub_Navi).pitch;
+    SrvDataHub_Monitor.data.navi_heading = DataPipe_DataObj(Hub_Navi).yaw;
+    SrvDataHub_Monitor.data.navi_q0 = DataPipe_DataObj(Hub_Navi).q0;
+    SrvDataHub_Monitor.data.navi_q1 = DataPipe_DataObj(Hub_Navi).q1;
+    SrvDataHub_Monitor.data.navi_q2 = DataPipe_DataObj(Hub_Navi).q2;
+    SrvDataHub_Monitor.data.navi_q3 = DataPipe_DataObj(Hub_Navi).q3;
+    memcpy(SrvDataHub_Monitor.data.navi_acc, DataPipe_DataObj(Hub_Navi).acc, sizeof(float) * Axis_Sum);
+    memcpy(SrvDataHub_Monitor.data.navi_gyr, DataPipe_DataObj(Hub_Navi).gyr, sizeof(float) * Axis_Sum);
+    memcpy(SrvDataHub_Monitor.data.navi_mag, DataPipe_DataObj(Hub_Navi).mag, sizeof(float) * Mag_Axis_Sum);
+    SrvDataHub_Monitor.data.navi_pres = DataPipe_DataObj(Hub_Navi).baro_pres;
+    SrvDataHub_Monitor.data.navi_alt = DataPipe_DataObj(Hub_Navi).baro_alt;
+    SrvDataHub_Monitor.data.navi_tof_alt = DataPipe_DataObj(Hub_Navi).tof_alt;
+    memcpy(SrvDataHub_Monitor.data.navi_rel_vel, DataPipe_DataObj(Hub_Navi).rel_vel, sizeof(float) * POS_Axis_Sum);
+    memcpy(SrvDataHub_Monitor.data.navi_rel_pos, DataPipe_DataObj(Hub_Navi).rel_pos, sizeof(float) * POS_Axis_Sum);
+
+    SrvDataHub_Monitor.update_reg.bit.navi_data = false;
 }
 
 static bool SrvDataHub_Get_RelativeAlt(uint32_t *time_stamp, float *alt, float *alt_speed)
 {
-    SrvDataHub_Monitor.inuse_reg.bit.relative_alt = true;
+    SrvDataHub_Monitor.inuse_reg.bit.navi_data = true;
 
 reupdate_relative_alt:
     if (time_stamp)
@@ -195,47 +227,38 @@ reupdate_relative_alt:
     if (alt_speed)
         *alt_speed = SrvDataHub_Monitor.data.relative_vertical_speed;
 
-    if (!SrvDataHub_Monitor.inuse_reg.bit.relative_alt)
+    if (!SrvDataHub_Monitor.inuse_reg.bit.navi_data)
         goto reupdate_relative_alt;
 
-    SrvDataHub_Monitor.inuse_reg.bit.relative_alt = false;
+    SrvDataHub_Monitor.inuse_reg.bit.navi_data = false;
 
     return true;
 }
 
-static bool SrvDataHub_Get_Attitude(uint32_t *time_stamp, float *pitch, float *roll, float *yaw, float *q0, float *q1, float *q2, float *q3)
+static bool SrvDataHub_Get_Attitude(uint32_t *time_stamp, float *pitch, float *roll, float *yaw, float *heading)
 {
 reupdate_attitude:
-    SrvDataHub_Monitor.inuse_reg.bit.attitude = true; 
+    SrvDataHub_Monitor.inuse_reg.bit.navi_data = true; 
     
     if (time_stamp)
-        (*time_stamp) = SrvDataHub_Monitor.data.att_update_time;
+        (*time_stamp) = SrvDataHub_Monitor.data.navi_update_time;
     
     if (pitch)
-        (*pitch) = SrvDataHub_Monitor.data.att_pitch;
+        (*pitch) = SrvDataHub_Monitor.data.navi_pitch;
     
     if (roll)
-        (*roll) = SrvDataHub_Monitor.data.att_roll;
+        (*roll) = SrvDataHub_Monitor.data.navi_roll;
     
     if (yaw)
-        (*yaw) = SrvDataHub_Monitor.data.att_yaw;
+        (*yaw) = SrvDataHub_Monitor.data.navi_yaw;
 
-    if (q0)
-        (*q0) = SrvDataHub_Monitor.data.att_q0;
+    if (heading)
+        (*heading) = SrvDataHub_Monitor.data.navi_heading;
 
-    if (q1)
-        (*q1) = SrvDataHub_Monitor.data.att_q1;
-
-    if (q2)
-        (*q2) = SrvDataHub_Monitor.data.att_q2;
-    
-    if (q3)
-        (*q3) = SrvDataHub_Monitor.data.att_q3;
-
-    if(!SrvDataHub_Monitor.inuse_reg.bit.attitude)
+    if(!SrvDataHub_Monitor.inuse_reg.bit.navi_data)
         goto reupdate_attitude;
 
-    SrvDataHub_Monitor.inuse_reg.bit.attitude = false;
+    SrvDataHub_Monitor.inuse_reg.bit.navi_data = false;
 
     return true;
 }
@@ -312,22 +335,20 @@ reupdate_convertdata:
 
 static bool SrvDataHub_Get_Telemetry_ControlData(ControlData_TypeDef *data)
 {
-    if(data)
-    {
+    if(data == NULL)
+        return false;
+
 reupdate_telemetry_control_data:
-        SrvDataHub_Monitor.inuse_reg.bit.rc_control_data = true;
+    SrvDataHub_Monitor.inuse_reg.bit.rc_control_data = true;
 
-        (*data) = SrvDataHub_Monitor.data.RC_Control_Data;
+    (*data) = SrvDataHub_Monitor.data.RC_Control_Data;
 
-        if(!SrvDataHub_Monitor.inuse_reg.bit.rc_control_data)
-            goto reupdate_telemetry_control_data;
+    if(!SrvDataHub_Monitor.inuse_reg.bit.rc_control_data)
+        goto reupdate_telemetry_control_data;
 
-        SrvDataHub_Monitor.inuse_reg.bit.rc_control_data = false;
+    SrvDataHub_Monitor.inuse_reg.bit.rc_control_data = false;
 
-        return true;
-    }
-
-    return false;
+    return true;
 }
 
 static bool SrvDataHub_Get_Actuator(uint32_t *time_stamp, int16_t *moto_ch, int16_t *servo_ch)
@@ -353,22 +374,20 @@ reupdate_actuator:
 
 static bool SrvDataHub_Get_CLI_State(bool *state)
 {
-    if(state)
-    {
+    if(state == NULL)
+        return false;
+
 reupdate_cli_state:
-        SrvDataHub_Monitor.inuse_reg.bit.cli = true;
+    SrvDataHub_Monitor.inuse_reg.bit.cli = true;
 
-        (*state) = SrvDataHub_Monitor.data.CLI_state;
+    (*state) = SrvDataHub_Monitor.data.CLI_state;
 
-        if(!SrvDataHub_Monitor.inuse_reg.bit.cli)
-            goto reupdate_cli_state;
+    if(!SrvDataHub_Monitor.inuse_reg.bit.cli)
+        goto reupdate_cli_state;
 
-        SrvDataHub_Monitor.inuse_reg.bit.cli = false;
+    SrvDataHub_Monitor.inuse_reg.bit.cli = false;
 
-        return true;
-    }
-
-    return false;
+    return true;
 }
 
 static bool SrvDataHub_Set_Upgrade_State(bool state)
@@ -385,41 +404,37 @@ static bool SrvDataHub_Set_Upgrade_State(bool state)
 
 static bool SrvDataHub_Get_Upgrade_State(bool *state)
 {
-    if(state)
-    {
+    if(state == NULL)
+        return false;
+
 reupdate_upgrade_state:
-        SrvDataHub_Monitor.inuse_reg.bit.upgrade = true;
+    SrvDataHub_Monitor.inuse_reg.bit.upgrade = true;
 
-        (*state) = SrvDataHub_Monitor.data.upgrading;
+    (*state) = SrvDataHub_Monitor.data.upgrading;
 
-        if(!SrvDataHub_Monitor.inuse_reg.bit.upgrade)
-            goto reupdate_upgrade_state;
+    if(!SrvDataHub_Monitor.inuse_reg.bit.upgrade)
+        goto reupdate_upgrade_state;
 
-        SrvDataHub_Monitor.inuse_reg.bit.upgrade = false;
-        
-        return true;
-    }
-
-    return false;
+    SrvDataHub_Monitor.inuse_reg.bit.upgrade = false;
+    
+    return true;
 }
 
 static bool SrvDataHub_Get_VCPAttach_State(bool *state)
 {
-    if(state)
-    {
+    if(state == NULL)
+        return false;
+
 reupdate_vcp_attach_state:
-        SrvDataHub_Monitor.inuse_reg.bit.USB_VCP_attach = true;
+    SrvDataHub_Monitor.inuse_reg.bit.USB_VCP_attach = true;
 
-        (*state) = SrvDataHub_Monitor.data.VCP_Attach;
+    (*state) = SrvDataHub_Monitor.data.VCP_Attach;
 
-        if(!SrvDataHub_Monitor.inuse_reg.bit.USB_VCP_attach)
-            goto reupdate_vcp_attach_state;
+    if(!SrvDataHub_Monitor.inuse_reg.bit.USB_VCP_attach)
+        goto reupdate_vcp_attach_state;
 
-        SrvDataHub_Monitor.inuse_reg.bit.USB_VCP_attach = false;
-        
-        return true;
-    }
-
-    return false;
+    SrvDataHub_Monitor.inuse_reg.bit.USB_VCP_attach = false;
+    
+    return true;
 }
 

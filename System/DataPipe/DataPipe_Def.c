@@ -19,3 +19,6 @@ DataPipeObj_TypeDef Actuator_hub_DataPipe = {.enable = true};
 
 DataPipeObj_TypeDef VCP_Connect_smp_DataPipe = {.enable = true};
 DataPipeObj_TypeDef VCP_Connect_hub_DataPipe = {.enable = true};
+
+DataPipeObj_TypeDef Navi_smp_DataPipe = {.enable = true};
+DataPipeObj_TypeDef Navi_hub_DataPipe = {.enable = true};

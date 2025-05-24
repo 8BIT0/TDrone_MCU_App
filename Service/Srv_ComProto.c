@@ -270,8 +270,9 @@ static uint16_t SrvComProto_MavMsg_Attitude(SrvComProto_MsgInfo_TypeDef *pck)
     float pitch = 0.0f;
     float roll = 0.0f;
     float yaw = 0.0f;
+    float heading = 0.0f;
 
-    SrvDataHub.get_attitude(&time_stamp, &pitch, &roll, &yaw, NULL, NULL, NULL, NULL);
+    SrvDataHub.get_attitude(&time_stamp, &pitch, &roll, &yaw, &heading);
     return mavlink_msg_attitude_pack_chan(pck->pck_info.system_id,
                                           pck->pck_info.component_id,
                                           pck->pck_info.chan, pck->msg_obj,

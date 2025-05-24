@@ -36,6 +36,7 @@ using namespace Eigen;
 */
 
 /* internal variable */
+DataPipe_CreateDataObj(NaviData_TypeDef, Smp_Navi);
 static NaviData_TypeDef NaviData;
 
 /* internal function */
@@ -56,6 +57,12 @@ void TaskNavi_Init(uint32_t period)
     
     memset(&TaskNavi_Monitor,       0, sizeof(TaskNavi_Monitor_TypeDef));
     memset(&NaviData,               0, sizeof(NaviData_TypeDef));
+
+    /* data pipe init */
+    memset(DataPipe_DataObjAddr(Smp_Navi), 0, DataPipe_DataSize(Smp_Navi));
+    Navi_smp_DataPipe.data_addr = (uint32_t)DataPipe_DataObjAddr(Smp_Navi);
+    Navi_smp_DataPipe.data_size = DataPipe_DataSize(Smp_Navi);
+    DataPipe_Enable(&Navi_smp_DataPipe);
 
     /* IMU  init */
     /* Max sample rate 1KHz */

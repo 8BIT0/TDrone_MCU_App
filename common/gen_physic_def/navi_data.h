@@ -22,16 +22,18 @@ typedef struct
     float yaw;
     float heading;
 
-    float q_0;
-    float q_1;
-    float q_2;
-    float q_3;
+    float q0;
+    float q1;
+    float q2;
+    float q3;
 
     float rel_vel[POS_Axis_Sum];    /* relative x y z velocity */
     float rel_pos[POS_Axis_Sum];    /* relative x y z movement */
 
     float baro_pres;
     float baro_alt;
+
+    float tof_alt;
 
     float acc[Axis_Sum];
     float gyr[Axis_Sum];

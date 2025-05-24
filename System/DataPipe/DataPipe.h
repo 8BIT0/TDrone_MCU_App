@@ -107,6 +107,9 @@ extern DataPipeObj_TypeDef CtlData_hub_DataPipe;
 extern DataPipeObj_TypeDef Actuator_smp_DataPipe;
 extern DataPipeObj_TypeDef Actuator_hub_DataPipe;
 
+extern DataPipeObj_TypeDef Navi_smp_DataPipe;
+extern DataPipeObj_TypeDef Navi_hub_DataPipe;
+
 #ifdef __cplusplus
 }
 #endif
