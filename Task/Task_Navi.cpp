@@ -54,7 +54,6 @@ void TaskNavi_Init(uint32_t period)
     TaskNavi_Monitor.max_sample_period = (1000 / period);
     TaskNavi_Monitor.period = period;
     
-    memset(&Attitude_smp_DataPipe,  0, sizeof(Attitude_smp_DataPipe));
     memset(&TaskNavi_Monitor,       0, sizeof(TaskNavi_Monitor_TypeDef));
     memset(&NaviData,               0, sizeof(NaviData_TypeDef));
 
@@ -119,6 +118,8 @@ void TaskNavi_Core(void const *arg)
 
         /* sample sensor */
         TaskNavi_Module_Sample(sys_time);
+
+        /* ste navigation data */
 
         /* pipe data to data hub */
 
@@ -195,6 +196,9 @@ static void TaskNavi_Module_Sample(uint32_t sys_time)
         NaviData.gyr[i] = imu_data.flt_gyr[i];
         NaviData.mag[i] = mag_data.fit_mag[i];
     }
+
+    NaviData.baro_alt  = baro_data.alt;
+    NaviData.baro_pres = baro_data.pressure;
 }
 
 static bool TaskNavi_ModuleSample_Trigger(uint32_t sys_time, uint32_t *sample_time, uint32_t period)

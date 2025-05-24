@@ -8,10 +8,7 @@ extern "C" {
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
-#include "pos_data.h"
-#include "imu_data.h"
-#include "baro_data.h"
-#include "mag_data.h"
+#include "navi_data.h"
 
 typedef union
 {
@@ -53,31 +50,6 @@ typedef struct
     
     uint16_t period;
 } TaskNavi_Monitor_TypeDef;
-
-typedef struct
-{
-    uint32_t time_stamp;
-
-    float pitch;
-    float roll;
-    float yaw;
-    float heading;
-
-    float q_0;
-    float q_1;
-    float q_2;
-    float q_3;
-
-    float rel_vel[POS_Axis_Sum];    /* relative x y z velocity */
-    float rel_pos[POS_Axis_Sum];    /* relative x y z movement */
-
-    float baro_pres;
-    float baro_alt;
-
-    float acc[Axis_Sum];
-    float gyr[Axis_Sum];
-    float mag[Mag_Axis_Sum];
-} NaviData_TypeDef;
 
 void TaskNavi_Init(uint32_t period);
 void TaskNavi_Core(void const *arg);

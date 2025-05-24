@@ -97,10 +97,6 @@ extern DataPipeObj_TypeDef VCP_Connect_hub_DataPipe;
 extern DataPipeObj_TypeDef SensorInitState_smp_DataPipe;
 extern DataPipeObj_TypeDef SensorInitState_hub_DataPipe;
 
-extern DataPipeObj_TypeDef Sensor_smp_DataPipe;
-extern DataPipeObj_TypeDef Sensor_log_DataPipe;
-extern DataPipeObj_TypeDef Sensor_hub_DataPipe;
-
 extern DataPipeObj_TypeDef Receiver_smp_DataPipe;
 extern DataPipeObj_TypeDef Receiver_hub_DataPipe;
 
@@ -110,18 +106,6 @@ extern DataPipeObj_TypeDef CtlData_hub_DataPipe;
 
 extern DataPipeObj_TypeDef Actuator_smp_DataPipe;
 extern DataPipeObj_TypeDef Actuator_hub_DataPipe;
-
-extern DataPipeObj_TypeDef Attitude_log_DataPipe;
-extern DataPipeObj_TypeDef Attitude_smp_DataPipe;
-extern DataPipeObj_TypeDef Attitude_hub_DataPipe;
-
-extern DataPipeObj_TypeDef Altitude_log_DataPipe;
-extern DataPipeObj_TypeDef Altitude_smp_DataPipe;
-extern DataPipeObj_TypeDef Altitude_hub_DataPipe;
-
-extern DataPipeObj_TypeDef Flow_log_DataPipe;
-extern DataPipeObj_TypeDef Flow_smp_DataPipe;
-extern DataPipeObj_TypeDef Flow_hub_DataPipe;
 
 #ifdef __cplusplus
 }

@@ -193,8 +193,8 @@ static SrvIMU_ErrorCode_List SrvIMU_Init(void)
     FilterParam_Obj_TypeDef *Gyr_Filter_Ptr = NULL;
     FilterParam_Obj_TypeDef *Acc_Filter_Ptr = NULL;
 
-    CREATE_FILTER_PARAM_OBJ(Gyr, 3, 50Hz, 1K, Gyr_Filter_Ptr);
-    CREATE_FILTER_PARAM_OBJ(Acc, 2, 50Hz, 1K, Acc_Filter_Ptr);
+    CREATE_FILTER_PARAM_OBJ(Gyr, 3, 30Hz, 200Hz, Gyr_Filter_Ptr);
+    CREATE_FILTER_PARAM_OBJ(Acc, 2, 30Hz, 200Hz, Acc_Filter_Ptr);
 
     memset(&IMU_Obj, 0, sizeof(IMU_Obj));
 

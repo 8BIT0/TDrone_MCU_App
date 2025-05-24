@@ -41,6 +41,31 @@ extern const BTF_Para_TypeDef BTF_U_5O_10Hz_100Hz[5];
 extern const BTF_Para_TypeDef BTF_E_5O_30Hz_100Hz[6];
 extern const BTF_Para_TypeDef BTF_U_5O_30Hz_100Hz[5];
 
+/* 200Hz sample rate butterworth filter parameter section */
+extern const BTF_Para_TypeDef BTF_E_2O_30Hz_200Hz[3];
+extern const BTF_Para_TypeDef BTF_U_2O_30Hz_200Hz[2];
+
+extern const BTF_Para_TypeDef BTF_E_2O_50Hz_200Hz[3];
+extern const BTF_Para_TypeDef BTF_U_2O_50Hz_200Hz[2];
+
+extern const BTF_Para_TypeDef BTF_E_3O_30Hz_200Hz[4];
+extern const BTF_Para_TypeDef BTF_U_3O_30Hz_200Hz[3];
+
+extern const BTF_Para_TypeDef BTF_E_3O_50Hz_200Hz[4];
+extern const BTF_Para_TypeDef BTF_U_3O_50Hz_200Hz[3];
+
+extern const BTF_Para_TypeDef BTF_E_4O_30Hz_200Hz[5];
+extern const BTF_Para_TypeDef BTF_U_4O_30Hz_200Hz[4];
+
+extern const BTF_Para_TypeDef BTF_E_4O_50Hz_200Hz[5];
+extern const BTF_Para_TypeDef BTF_U_4O_50Hz_200Hz[4];
+
+extern const BTF_Para_TypeDef BTF_E_5O_30Hz_200Hz[6];
+extern const BTF_Para_TypeDef BTF_U_5O_30Hz_200Hz[5];
+
+extern const BTF_Para_TypeDef BTF_E_5O_50Hz_200Hz[6];
+extern const BTF_Para_TypeDef BTF_U_5O_50Hz_200Hz[5];
+
 /* 1K sample rate butterworth filter parameter section */
 extern const BTF_Para_TypeDef BTF_E_2O_30Hz_1K[3];
 extern const BTF_Para_TypeDef BTF_U_2O_30Hz_1K[2];
