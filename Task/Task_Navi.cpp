@@ -126,7 +126,7 @@ void TaskNavi_Core(void const *arg)
         /* sample sensor */
         TaskNavi_Module_Sample(sys_time);
 
-        /* ste navigation data */
+        /* set navigation data */
 
         /* pipe data to data hub */
 
