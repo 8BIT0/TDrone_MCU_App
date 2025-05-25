@@ -48,23 +48,6 @@ static FrameCTL_UartPortMonitor_TypeDef Radio_UartPort_List[RADIO_UART_NUM] = {
 };
 #endif
 
-typedef struct
-{
-    FrameCTL_MavATTIn_TypeDef exp_att;
-    FrameCTL_MavGyrIn_TypeDef exp_gyr;
-    FrameCTL_MavAltIn_TypeDef exp_alt;
-    
-    FrameCTL_MavPIDIn_TypeDef pid_roll;
-    FrameCTL_MavPIDIn_TypeDef pid_pitch;
-
-    FrameCTL_MavPIDIn_TypeDef pid_gyr_x;
-    FrameCTL_MavPIDIn_TypeDef pid_gyr_y;
-    FrameCTL_MavPIDIn_TypeDef pid_gyr_z;
-} FrameCTL_MavTunningMonitor_TypeDef;
-
-/* internal variable */
-FrameCTL_MavTunningMonitor_TypeDef InPut_MavData;
-
 /* MAVLink message List */
 SrvComProto_MsgInfo_TypeDef TaskProto_MAV_RawIMU;
 SrvComProto_MsgInfo_TypeDef TaskProto_MAV_ScaledIMU;
@@ -141,22 +124,10 @@ static FrameCTL_UpgradeMonitor_TypeDef Upgrade_Monitor = {
 };
 
 /* upgrade section */
-static bool TaskFrameCTL_Upgrade_Enable(bool state, uint32_t port_addr, uint8_t port_type);
-static void TaskFrameCTL_Upgrade_StatePolling(bool cli);
 
 /* frame section */
 static void TaskFrameCTL_PortFrameOut_Process(void);
 static void TaskFrameCTL_MavMsg_Trans(FrameCTL_Monitor_TypeDef *Obj, uint8_t *p_data, uint16_t size);
-
-/* mavlinke frame decode callback */
-static bool TaskFrame_Mav_ExpAtt_Callback(void const *mav_data, void *cus_data);
-static bool TaskFrame_Mav_ExpGyro_Callback(void const *mav_data, void *cus_data);
-static bool TaskFrame_Mav_ExpAlt_Callback(void const *mav_data, void *cus_data);
-static bool TaskFrame_Mav_PID_Roll_Callback(void const *mav_data, void *cus_data);
-static bool TaskFrame_Mav_PID_Pitch_Callback(void const *mav_data, void *cus_data);
-static bool TaskFrame_Mav_PID_GyrX_Callback(void const *mav_data, void *cus_data);
-static bool TaskFrame_Mav_PID_GyrY_Callback(void const *mav_data, void *cus_data);
-static bool TaskFrame_Mav_PID_GyrZ_Callback(void const *mav_data, void *cus_data);
 
 /* default vcp port section */
 static void TaskFrameCTL_DefaultPort_Init(FrameCTL_PortMonitor_TypeDef *monitor);
@@ -180,9 +151,6 @@ void TaskFrameCTL_Init(uint32_t period)
     memset(&PortMonitor, 0, sizeof(PortMonitor));
     memset(&DefaultPort_MavMsgInput_Obj, 0, sizeof(SrvComProto_MsgObj_TypeDef));
     memset(&RadioPort_MavMsgInput_Obj, 0, sizeof(SrvComProto_MsgObj_TypeDef));
-
-    /* param init */
-    memset(&InPut_MavData, 0, sizeof(FrameCTL_MavTunningMonitor_TypeDef));
 
     TaskFrameCTL_DefaultPort_Init(&PortMonitor);
     TaskFrameCTL_RadioPort_Init(&PortMonitor);
@@ -233,8 +201,9 @@ void TaskFrameCTL_Core(void const *arg)
                 TaskFrameCTL_CLI_Proc();
         }
         else
-            /* upgrade process */
-            TaskFrameCTL_Upgrade_StatePolling(cli_state);
+        {
+            /* upgrade mode process */
+        }
 
         SrvOsCommon.precise_delay(&per_time, FrameCTL_Period);
     }
@@ -606,63 +575,6 @@ static void TaskFrameCTL_USB_VCP_Connect_Callback(uint32_t Obj_addr, uint32_t *t
 }
 
 /************************************** upgrade protocol section ********************************************/
-static void TaskFrameCTL_Upgrade_Send(uint8_t *p_buf, uint16_t size)
-{
-    if ((Upgrade_Monitor.port_addr == 0) || \
-        (p_buf == NULL) || \
-        (size == 0))
-        return;
-
-    switch ((uint8_t) Upgrade_Monitor.port_type)
-    {
-        case Port_Uart:
-            TaskFrameCTL_Port_Tx(Upgrade_Monitor.port_addr, (uint8_t *)p_buf, size);
-            break;
-    
-        case Port_USB:
-            TaskFrameCTL_DefaultPort_Trans((uint8_t *)p_buf, size);
-            break; 
-
-        default:
-            break;
-    }
-}
-
-static bool TaskFrameCTL_Upgrade_Enable(bool state, uint32_t port_addr, uint8_t port_type)
-{
-    bool arm_state = DRONE_ARM;
-
-    /* check arm state first */
-    /* if is under disarm state then disable upgrade enabling */
-    if (SrvDataHub.get_arm_state(&arm_state) && (arm_state == DRONE_ARM))
-    {
-        Upgrade_Monitor.is_enable = state;
-        Upgrade_Monitor.port_addr = port_addr;
-        Upgrade_Monitor.port_type = port_type;
-        
-        if (!state)
-        {
-            Upgrade_Monitor.port_addr = 0;
-            Upgrade_Monitor.port_type = Port_None;
-
-            SrvOsCommon.enter_critical();
-            SrvDataHub.set_upgrade_state(true);
-            SrvOsCommon.exit_critical();
-        }
-
-        /* suspend Telemetry task */
-        /* when upgrade finish or abort resume telemtry task */
-
-        return true;
-    }
-
-    return false;
-}
-
-static void TaskFrameCTL_Upgrade_StatePolling(bool cli)
-{
-
-}
 
 /************************************** frame protocol section ********************************************/
 static bool TaskFrameCTL_MAV_Msg_Init(void)
@@ -751,26 +663,6 @@ static bool TaskFrameCTL_MAV_Msg_Init(void)
 
         SrvComProto.mav_msg_obj_init(&RadioProto_MAV_Altitude, PckInfo, 100);
         SrvComProto.mav_msg_enable_ctl(&RadioProto_MAV_Altitude, true);
-
-        /* create mavlink input message object */
-        /* default(VCP) port */
-        /* when VCP port is been attached only can do parameter tunning function */
-        SrvComProto.mav_msg_set_input_callback(&DefaultPort_MavMsgInput_Obj, MavIn_Msg_PID_Para_Roll,  TaskFrame_Mav_PID_Roll_Callback,  &InPut_MavData.pid_roll);
-        SrvComProto.mav_msg_set_input_callback(&DefaultPort_MavMsgInput_Obj, MavIn_Msg_PID_Para_Pitch, TaskFrame_Mav_PID_Pitch_Callback, &InPut_MavData.pid_pitch);
-        SrvComProto.mav_msg_set_input_callback(&DefaultPort_MavMsgInput_Obj, MavIn_Msg_PID_Para_GyrX,  TaskFrame_Mav_PID_GyrX_Callback,  &InPut_MavData.pid_gyr_x);
-        SrvComProto.mav_msg_set_input_callback(&DefaultPort_MavMsgInput_Obj, MavIn_Msg_PID_Para_GyrY,  TaskFrame_Mav_PID_GyrY_Callback,  &InPut_MavData.pid_gyr_y);
-        SrvComProto.mav_msg_set_input_callback(&DefaultPort_MavMsgInput_Obj, MavIn_Msg_PID_Para_GyrZ,  TaskFrame_Mav_PID_GyrZ_Callback,  &InPut_MavData.pid_gyr_z);
-
-        /* radio port */
-        /* radio control mode can be used */
-        SrvComProto.mav_msg_set_input_callback(&RadioPort_MavMsgInput_Obj, MavIn_Msg_Att,            TaskFrame_Mav_ExpAtt_Callback,    &InPut_MavData.exp_att);
-        SrvComProto.mav_msg_set_input_callback(&RadioPort_MavMsgInput_Obj, MavIn_Msg_Gyr,            TaskFrame_Mav_ExpGyro_Callback,   &InPut_MavData.exp_gyr);
-        SrvComProto.mav_msg_set_input_callback(&RadioPort_MavMsgInput_Obj, MavIn_Msg_Alt,            TaskFrame_Mav_ExpAlt_Callback,    &InPut_MavData.exp_alt);
-        SrvComProto.mav_msg_set_input_callback(&RadioPort_MavMsgInput_Obj, MavIn_Msg_PID_Para_Roll,  TaskFrame_Mav_PID_Roll_Callback,  &InPut_MavData.pid_roll);
-        SrvComProto.mav_msg_set_input_callback(&RadioPort_MavMsgInput_Obj, MavIn_Msg_PID_Para_Pitch, TaskFrame_Mav_PID_Pitch_Callback, &InPut_MavData.pid_pitch);
-        SrvComProto.mav_msg_set_input_callback(&RadioPort_MavMsgInput_Obj, MavIn_Msg_PID_Para_GyrX,  TaskFrame_Mav_PID_GyrX_Callback,  &InPut_MavData.pid_gyr_x);
-        SrvComProto.mav_msg_set_input_callback(&RadioPort_MavMsgInput_Obj, MavIn_Msg_PID_Para_GyrY,  TaskFrame_Mav_PID_GyrY_Callback,  &InPut_MavData.pid_gyr_y);
-        SrvComProto.mav_msg_set_input_callback(&RadioPort_MavMsgInput_Obj, MavIn_Msg_PID_Para_GyrZ,  TaskFrame_Mav_PID_GyrZ_Callback,  &InPut_MavData.pid_gyr_z);
         return true;
     }
 
@@ -787,38 +679,38 @@ static void TaskFrameCTL_PortFrameOut_Process(void)
     proto_monitor.frame_type = ComFrame_MavMsg;
     SrvDataHub.get_cli_state(&CLI_state);
 
-    if(FrameCTL_MavProto_Enable)
+    if (!FrameCTL_MavProto_Enable)
+        return;
+
+    /* when attach to configrator then disable radio port trans use default port trans mav data */
+    /* check other port init state */
+
+    /* if in tunning than halt general frame protocol */
+    SrvDataHub.get_arm_state(&arm_state);
+
+    if (((FrameCTL_UartPortMonitor_TypeDef *)Radio_Addr)->init_state)
     {
-        /* when attach to configrator then disable radio port trans use default port trans mav data */
-        /* check other port init state */
+        /* Proto mavlink message through Radio */
+        proto_monitor.port_type = Port_Uart;
+        proto_monitor.port_addr = Radio_Addr;
+        SrvComProto.mav_msg_stream(&RadioProto_MAV_RawIMU,    &MavStream, proto_arg, (ComProto_Callback)TaskFrameCTL_MavMsg_Trans);
+        SrvComProto.mav_msg_stream(&RadioProto_MAV_ScaledIMU, &MavStream, proto_arg, (ComProto_Callback)TaskFrameCTL_MavMsg_Trans);
+        SrvComProto.mav_msg_stream(&RadioProto_MAV_Attitude,  &MavStream, proto_arg, (ComProto_Callback)TaskFrameCTL_MavMsg_Trans);
+        SrvComProto.mav_msg_stream(&RadioProto_MAV_RcChannel, &MavStream, proto_arg, (ComProto_Callback)TaskFrameCTL_MavMsg_Trans);
+        SrvComProto.mav_msg_stream(&RadioProto_MAV_Altitude,  &MavStream, proto_arg, (ComProto_Callback)TaskFrameCTL_MavMsg_Trans);
+    }
 
-        /* if in tunning than halt general frame protocol */
-        SrvDataHub.get_arm_state(&arm_state);
-
-        if (((FrameCTL_UartPortMonitor_TypeDef *)Radio_Addr)->init_state)
-        {
-            /* Proto mavlink message through Radio */
-            proto_monitor.port_type = Port_Uart;
-            proto_monitor.port_addr = Radio_Addr;
-            SrvComProto.mav_msg_stream(&RadioProto_MAV_RawIMU,    &MavStream, proto_arg, (ComProto_Callback)TaskFrameCTL_MavMsg_Trans);
-            SrvComProto.mav_msg_stream(&RadioProto_MAV_ScaledIMU, &MavStream, proto_arg, (ComProto_Callback)TaskFrameCTL_MavMsg_Trans);
-            SrvComProto.mav_msg_stream(&RadioProto_MAV_Attitude,  &MavStream, proto_arg, (ComProto_Callback)TaskFrameCTL_MavMsg_Trans);
-            SrvComProto.mav_msg_stream(&RadioProto_MAV_RcChannel, &MavStream, proto_arg, (ComProto_Callback)TaskFrameCTL_MavMsg_Trans);
-            SrvComProto.mav_msg_stream(&RadioProto_MAV_Altitude,  &MavStream, proto_arg, (ComProto_Callback)TaskFrameCTL_MavMsg_Trans);
-        }
-
-        if (PortMonitor.VCP_Port.init_state)
-        {
-            /* Proto mavlink message through default port */
-            proto_monitor.port_type = Port_USB;
-            proto_monitor.port_addr = USB_VCP_Addr;
-            SrvComProto.mav_msg_stream(&TaskProto_MAV_RawIMU,       &MavStream, proto_arg, (ComProto_Callback)TaskFrameCTL_MavMsg_Trans);
-            SrvComProto.mav_msg_stream(&TaskProto_MAV_ScaledIMU,    &MavStream, proto_arg, (ComProto_Callback)TaskFrameCTL_MavMsg_Trans);
-            SrvComProto.mav_msg_stream(&TaskProto_MAV_Attitude,     &MavStream, proto_arg, (ComProto_Callback)TaskFrameCTL_MavMsg_Trans);
-            SrvComProto.mav_msg_stream(&TaskProto_MAV_RcChannel,    &MavStream, proto_arg, (ComProto_Callback)TaskFrameCTL_MavMsg_Trans);
-            SrvComProto.mav_msg_stream(&TaskProto_MAV_Altitude,     &MavStream, proto_arg, (ComProto_Callback)TaskFrameCTL_MavMsg_Trans);
-            SrvComProto.mav_msg_stream(&TaskProto_MAV_Exp_Attitude, &MavStream, proto_arg, (ComProto_Callback)TaskFrameCTL_MavMsg_Trans); 
-        }
+    if (PortMonitor.VCP_Port.init_state)
+    {
+        /* Proto mavlink message through default port */
+        proto_monitor.port_type = Port_USB;
+        proto_monitor.port_addr = USB_VCP_Addr;
+        SrvComProto.mav_msg_stream(&TaskProto_MAV_RawIMU,       &MavStream, proto_arg, (ComProto_Callback)TaskFrameCTL_MavMsg_Trans);
+        SrvComProto.mav_msg_stream(&TaskProto_MAV_ScaledIMU,    &MavStream, proto_arg, (ComProto_Callback)TaskFrameCTL_MavMsg_Trans);
+        SrvComProto.mav_msg_stream(&TaskProto_MAV_Attitude,     &MavStream, proto_arg, (ComProto_Callback)TaskFrameCTL_MavMsg_Trans);
+        SrvComProto.mav_msg_stream(&TaskProto_MAV_RcChannel,    &MavStream, proto_arg, (ComProto_Callback)TaskFrameCTL_MavMsg_Trans);
+        SrvComProto.mav_msg_stream(&TaskProto_MAV_Altitude,     &MavStream, proto_arg, (ComProto_Callback)TaskFrameCTL_MavMsg_Trans);
+        SrvComProto.mav_msg_stream(&TaskProto_MAV_Exp_Attitude, &MavStream, proto_arg, (ComProto_Callback)TaskFrameCTL_MavMsg_Trans); 
     }
 }
 
@@ -849,21 +741,14 @@ static void TaskFrameCTL_CLI_Proc(void)
 
 static void TaskFrameCTL_MavMsg_Trans(FrameCTL_Monitor_TypeDef *Obj, uint8_t *p_data, uint16_t size)
 {
-    if(Obj && (Obj->frame_type == ComFrame_MavMsg) && Obj->port_addr && p_data && size)
+    if((Obj == NULL) || (Obj->frame_type != ComFrame_MavMsg) || (Obj->port_addr == 0) || (p_data == NULL) && (size == 0))
+        return;
+
+    switch((uint8_t)(Obj->port_type))
     {
-        switch((uint8_t)(Obj->port_type))
-        {
-            case Port_Uart:
-                TaskFrameCTL_Port_Tx(Obj->port_addr, p_data, size);
-                break;
-
-            case Port_USB:
-                TaskFrameCTL_DefaultPort_Trans(p_data, size);
-                break;
-
-            default:
-                return;
-        }
+        case Port_Uart: TaskFrameCTL_Port_Tx(Obj->port_addr, p_data, size); break;
+        case Port_USB: TaskFrameCTL_DefaultPort_Trans(p_data, size); break;
+        default: return;
     }
 }
 
@@ -889,114 +774,19 @@ static void TaskFrameCTL_ConfigureStateCheck(void)
 }
 
 /***************************************** Frame mavlink Receive Callback ************************************/
-static bool TaskFrame_Mav_ExpAtt_Callback(void const *mav_data, void *cus_data)
-{
-    if (mav_data == NULL)
-        return false;
-
-    return true;
-}
-
-static bool TaskFrame_Mav_ExpGyro_Callback(void const *mav_data, void *cus_data)
-{
-    if (mav_data == NULL)
-        return false;
-
-    return true;
-}
-
-static bool TaskFrame_Mav_ExpAlt_Callback(void const *mav_data, void *cus_data)
-{
-    bool arm_state = DRONE_ARM;
-
-    if ((mav_data == NULL) || \
-        (SrvDataHub.get_arm_state(&arm_state)) || \
-        (arm_state == DRONE_DISARM))
-        return false;
-
-    return true;
-}
-
-static bool TaskFrame_Mav_PID_Roll_Callback(void const *mav_data, void *cus_data)
-{
-    bool arm_state = DRONE_ARM;
-
-    if ((mav_data == NULL) || \
-        (SrvDataHub.get_arm_state(&arm_state)) || \
-        (arm_state == DRONE_DISARM))
-        return false;
-
-    return true;
-}
-
-static bool TaskFrame_Mav_PID_Pitch_Callback(void const *mav_data, void *cus_data)
-{
-    bool arm_state = DRONE_ARM;
-
-    if ((mav_data == NULL) || \
-        (SrvDataHub.get_arm_state(&arm_state)) || \
-        (arm_state == DRONE_DISARM))
-        return false;
-
-    return true;
-}
-
-static bool TaskFrame_Mav_PID_GyrX_Callback(void const *mav_data, void *cus_data)
-{
-    bool arm_state = DRONE_ARM;
-
-    if ((mav_data == NULL) || \
-        (SrvDataHub.get_arm_state(&arm_state)) || \
-        (arm_state == DRONE_DISARM))
-        return false;
-
-    return true;
-}
-
-static bool TaskFrame_Mav_PID_GyrY_Callback(void const *mav_data, void *cus_data)
-{
-    bool arm_state = DRONE_ARM;
-
-    if ((mav_data == NULL) || \
-        (SrvDataHub.get_arm_state(&arm_state)) || \
-        (arm_state == DRONE_DISARM))
-        return false;
-
-    return true;
-}
-
-static bool TaskFrame_Mav_PID_GyrZ_Callback(void const *mav_data, void *cus_data)
-{
-    bool arm_state = DRONE_ARM;
-
-    if ((mav_data == NULL) || \
-        (SrvDataHub.get_arm_state(&arm_state)) || \
-        (arm_state == DRONE_DISARM))
-        return false;
-
-    return true;
-}
 
 /***************************************** CLI Section ***********************************************/
 static int TaskFrameCTL_CLI_Trans(const uint8_t *p_data, uint16_t size)
 {
-    if(p_data && size)
+    if((p_data == NULL) || (size == 0))
+        return 0;
+
+    switch ((uint8_t) CLI_Monitor.type)
     {
-        switch ((uint8_t) CLI_Monitor.type)
-        {
-            case Port_Uart:
-                TaskFrameCTL_Port_Tx(CLI_Monitor.port_addr, (uint8_t *)p_data, size);
-                break;
-            
-            case Port_USB:
-                TaskFrameCTL_DefaultPort_Trans((uint8_t *)p_data, size);
-                break; 
-
-            default:
-                break;
-        }
+        case Port_Uart: TaskFrameCTL_Port_Tx(CLI_Monitor.port_addr, (uint8_t *)p_data, size); break;
+        case Port_USB: TaskFrameCTL_DefaultPort_Trans((uint8_t *)p_data, size); break; 
+        default: break;
     }
-
     return 0;
 }
 
@@ -1004,17 +794,17 @@ static void TaskFermeCTL_CLI_DisableControl(void)
 {
     Shell *shell_obj = Shell_GetInstence();
     
-    if (shell_obj)
-    {
-        shellPrint(shell_obj, "\r\n\r\n");
-        
-        SrvOsCommon.enter_critical();
-        SrvDataHub.set_cli_state(false);
-        SrvOsCommon.exit_critical();
+    if (shell_obj == NULL)
+        return;
 
-        shellPrint(shell_obj, "[ CLI Disabled ]\r\n");
-        CLI_Monitor.port_addr = 0;
-    }
+    shellPrint(shell_obj, "\r\n\r\n");
+    
+    SrvOsCommon.enter_critical();
+    SrvDataHub.set_cli_state(false);
+    SrvOsCommon.exit_critical();
+
+    shellPrint(shell_obj, "[ CLI Disabled ]\r\n");
+    CLI_Monitor.port_addr = 0;
 }
 SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0) | SHELL_CMD_TYPE(SHELL_TYPE_CMD_FUNC) | SHELL_CMD_DISABLE_RETURN, CLI_Disable,  TaskFermeCTL_CLI_DisableControl, CLI Enable Control);
 
