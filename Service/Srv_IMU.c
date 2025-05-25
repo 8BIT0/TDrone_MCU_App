@@ -193,8 +193,11 @@ static SrvIMU_ErrorCode_List SrvIMU_Init(void)
     FilterParam_Obj_TypeDef *Gyr_Filter_Ptr = NULL;
     FilterParam_Obj_TypeDef *Acc_Filter_Ptr = NULL;
 
-    CREATE_FILTER_PARAM_OBJ(Gyr, 3, 30Hz, 200Hz, Gyr_Filter_Ptr);
-    CREATE_FILTER_PARAM_OBJ(Acc, 2, 30Hz, 200Hz, Acc_Filter_Ptr);
+    CREATE_FILTER_PARAM_OBJ(Gyr, 2, 50Hz, 200Hz, Gyr_Filter_Ptr);
+    
+    /* sample 200hz cut frequence 30hz 2order filter parameter error */
+    /* sample 200hz cut frequence 30hz 3order filter parameter error */
+    CREATE_FILTER_PARAM_OBJ(Acc, 2, 50Hz, 200Hz, Acc_Filter_Ptr);
 
     memset(&IMU_Obj, 0, sizeof(IMU_Obj));
 

@@ -15,11 +15,11 @@
 #include "Dev_W25Qxx_QSPI.h"
 #include "cmsis_os.h"
 
-#define TaskControl_Period_Def   20 /* unit: ms period 5ms  50Hz */
-#define TaskTelemetry_Period_def 2  /* unit: ms period 2ms  500Hz */
-#define TaslLog_Period_Def       5  /* unit: ms period 5ms  200Hz */
-#define TaslNavi_Period_Def      5  /* unit: ms period 10ms 200Hz */
-#define TaskFrameCTL_Period_Def  5  /* unit: ms period 5ms  200Hz */
+#define TaskControl_Period_Def   20  /* unit: ms period 5ms   50Hz */
+#define TaskTelemetry_Period_def 2   /* unit: ms period 2ms   500Hz */
+#define TaslLog_Period_Def       5   /* unit: ms period 5ms   200Hz */
+#define TaslNavi_Period_Def      5   /* unit: ms period 5ms   200Hz */
+#define TaskFrameCTL_Period_Def  10  /* unit: ms period 10ms  100Hz */
 
 osThreadId TaskControl_Handle = NULL;
 osThreadId TaskNavi_Handle = NULL;
@@ -82,12 +82,12 @@ void Task_Manager_CreateTask(void const *arg)
             SrvUpgrade.init(NULL);
             SrvComProto.init(SrvComProto_Type_MAV, NULL);
             
-            TaskTelemetry_Init(TaskTelemetry_Period_def);
+            // TaskTelemetry_Init(TaskTelemetry_Period_def);
             // TaskControl_Init(TaskControl_Period_Def);
 
             // TaskBlackBox_Init();
             TaskNavi_Init(TaslNavi_Period_Def);
-            // TaskFrameCTL_Init(TaskFrameCTL_Period_Def);
+            TaskFrameCTL_Init(TaskFrameCTL_Period_Def);
 
             vTaskSuspendAll();
             // osThreadDef(TelemtryTask, TaskTelemetry_Core, osPriorityHigh, 0, 1024);
@@ -102,8 +102,8 @@ void Task_Manager_CreateTask(void const *arg)
             // osThreadDef(BlackBoxTask, TaskBlackBox_Core, osPriorityNormal, 0, 4096);
             // TaskLog_Handle = osThreadCreate(osThread(BlackBoxTask), NULL);
 
-            // osThreadDef(FrameCTLTask, TaskFrameCTL_Core, osPriorityNormal, 0, 1024);
-            // TaskFrameCTL_Handle = osThreadCreate(osThread(FrameCTLTask), NULL);
+            osThreadDef(FrameCTLTask, TaskFrameCTL_Core, osPriorityNormal, 0, 1024);
+            TaskFrameCTL_Handle = osThreadCreate(osThread(FrameCTLTask), NULL);
             xTaskResumeAll();
 
             init = true;

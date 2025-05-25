@@ -51,12 +51,12 @@ TaskNavi_Monitor_TypeDef TaskNavi_Monitor;
 /* data structure definition */
 
 void TaskNavi_Init(uint32_t period)
-{
-    TaskNavi_Monitor.max_sample_period = (1000 / period);
-    TaskNavi_Monitor.period = period;
-    
+{    
     memset(&TaskNavi_Monitor,       0, sizeof(TaskNavi_Monitor_TypeDef));
     memset(&NaviData,               0, sizeof(NaviData_TypeDef));
+
+    TaskNavi_Monitor.max_sample_period = (1000 / period);
+    TaskNavi_Monitor.period = period;
 
     /* data pipe init */
     memset(DataPipe_DataObjAddr(Smp_Navi), 0, DataPipe_DataSize(Smp_Navi));
