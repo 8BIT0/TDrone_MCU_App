@@ -22,3 +22,12 @@ DataPipeObj_TypeDef VCP_Connect_hub_DataPipe = {.enable = true};
 
 DataPipeObj_TypeDef Navi_smp_DataPipe = {.enable = true};
 DataPipeObj_TypeDef Navi_hub_DataPipe = {.enable = true};
+
+DataPipeObj_TypeDef RawMag_smp_DataPipe = {.enable = true};
+DataPipeObj_TypeDef RawMag_hub_DataPipe = {.enable = true};
+
+DataPipeObj_TypeDef RawIMU_smp_DataPipe = {.enable = true};
+DataPipeObj_TypeDef RawIMU_hub_DataPipe = {.enable = true};
+
+DataPipeObj_TypeDef RawBaro_smp_DataPipe = {.enable = true};
+DataPipeObj_TypeDef RawBaro_hub_DataPipe = {.enable = true};

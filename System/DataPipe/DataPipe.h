@@ -110,6 +110,15 @@ extern DataPipeObj_TypeDef Actuator_hub_DataPipe;
 extern DataPipeObj_TypeDef Navi_smp_DataPipe;
 extern DataPipeObj_TypeDef Navi_hub_DataPipe;
 
+extern DataPipeObj_TypeDef RawMag_smp_DataPipe;
+extern DataPipeObj_TypeDef RawMag_hub_DataPipe;
+
+extern DataPipeObj_TypeDef RawIMU_smp_DataPipe;
+extern DataPipeObj_TypeDef RawIMU_hub_DataPipe;
+
+extern DataPipeObj_TypeDef RawBaro_smp_DataPipe;
+extern DataPipeObj_TypeDef RawBaro_hub_DataPipe;
+
 #ifdef __cplusplus
 }
 #endif
