@@ -20,11 +20,6 @@ typedef enum
 typedef struct
 {
     uint32_t time_stamp;
-
-    int16_t raw_mag[Mag_Axis_Sum];
-    int16_t raw_mag_offset[Mag_Axis_Sum];
-    int16_t raw_mag_temp;
-          
     float mag[Mag_Axis_Sum];
     float mag_temp;
 } MagData_TypeDef;

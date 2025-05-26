@@ -9,9 +9,11 @@ SrvDataHub_Monitor_TypeDef SrvDataHub_Monitor = {
 
 /* Pipe Object */
 DataPipe_CreateDataObj(NaviData_TypeDef, Hub_Navi);
+DataPipe_CreateDataObj(BaroData_TypeDef, Hub_Baro);
+DataPipe_CreateDataObj(MagData_TypeDef, Hub_Mag);
+DataPipe_CreateDataObj(IMUData_TypeDef, Hub_IMU);
 DataPipe_CreateDataObj(SrvActuatorPipeData_TypeDef, Hub_Actuator);
 DataPipe_CreateDataObj(ControlData_TypeDef, Hub_Telemetry_Rc);
-DataPipe_CreateDataObj(RelMov_TypeDef, Hub_Alt);
 DataPipe_CreateDataObj(ExpControlData_TypeDef, Hub_Cnv_CtlData);
 DataPipe_CreateDataObj(bool, Hub_VCP_Attach_State);
 
@@ -20,6 +22,9 @@ static void SrvDataHub_PipeRcTelemtryDataFinish_Callback(DataPipeObj_TypeDef *ob
 static void SrvDataHub_Actuator_DataPipe_Finish_Callback(DataPipeObj_TypeDef *obj);
 static void SrvDataHub_VCPAttach_DataPipe_Finish_Callback(DataPipeObj_TypeDef *obj);
 static void SrvDataHub_NavData_DataPipe_Finish_Callback(DataPipeObj_TypeDef *obj);
+static void SrvDataHub_RawIMUData_DataPipe_Finish_Callback(DataPipeObj_TypeDef *obj);
+static void SrvDataHub_RawMagData_DataPipe_Finish_Callback(DataPipeObj_TypeDef *obj);
+static void SrvDataHub_RawBaroData_DataPipe_Finish_Callback(DataPipeObj_TypeDef *obj);
 static void SrvDataHub_PipeConvertControlDataFinish_Callback(DataPipeObj_TypeDef *obj);
 
 /* external function */
@@ -81,6 +86,24 @@ static void SrvDataHub_Init(void)
     Navi_hub_DataPipe.data_size = DataPipe_DataSize(Hub_Navi);
     Navi_hub_DataPipe.trans_finish_cb = To_Pipe_TransFinish_Callback(SrvDataHub_NavData_DataPipe_Finish_Callback);
     DataPipe_Enable(&Navi_hub_DataPipe);
+
+    memset(DataPipe_DataObjAddr(Hub_IMU), 0, DataPipe_DataSize(Hub_IMU));
+    RawIMU_hub_DataPipe.data_addr = (uint32_t)DataPipe_DataObjAddr(Hub_IMU);
+    RawIMU_hub_DataPipe.data_size = DataPipe_DataSize(Hub_IMU);
+    RawIMU_hub_DataPipe.trans_finish_cb = To_Pipe_TransFinish_Callback(SrvDataHub_RawIMUData_DataPipe_Finish_Callback);
+    DataPipe_Enable(&RawIMU_hub_DataPipe);
+
+    memset(DataPipe_DataObjAddr(Hub_Baro), 0, DataPipe_DataSize(Hub_Baro));
+    RawBaro_hub_DataPipe.data_addr = (uint32_t)DataPipe_DataObjAddr(Hub_Baro);
+    RawBaro_hub_DataPipe.data_size = DataPipe_DataSize(Hub_Baro);
+    RawBaro_hub_DataPipe.trans_finish_cb = To_Pipe_TransFinish_Callback(SrvDataHub_RawBaroData_DataPipe_Finish_Callback);
+    DataPipe_Enable(&RawBaro_hub_DataPipe);
+
+    memset(DataPipe_DataObjAddr(Hub_Mag), 0, DataPipe_DataSize(Hub_Mag));
+    RawMag_hub_DataPipe.data_addr = (uint32_t)DataPipe_DataObjAddr(Hub_Mag);
+    RawMag_hub_DataPipe.data_size = DataPipe_DataSize(Hub_Mag);
+    RawMag_hub_DataPipe.trans_finish_cb = To_Pipe_TransFinish_Callback(SrvDataHub_RawMagData_DataPipe_Finish_Callback);
+    DataPipe_Enable(&RawMag_hub_DataPipe);
 
     memset(DataPipe_DataObjAddr(Hub_VCP_Attach_State), 0, DataPipe_DataSize(Hub_VCP_Attach_State));
     VCP_Connect_hub_DataPipe.data_addr = (uint32_t)DataPipe_DataObjAddr(Hub_VCP_Attach_State);
@@ -169,7 +192,7 @@ static void SrvDataHub_PipeConvertControlDataFinish_Callback(DataPipeObj_TypeDef
     if (SrvDataHub_Monitor.inuse_reg.bit.cnv_control_data)
         SrvDataHub_Monitor.inuse_reg.bit.cnv_control_data = false;
 
-    SrvDataHub_Monitor.data.cnvctl_data_time = SrvOsCommon.get_os_ms();
+    SrvDataHub_Monitor.data.cnvctl_data_time = DataPipe_DataObj(Hub_Cnv_CtlData).time_stamp;
     SrvDataHub_Monitor.data.arm = DataPipe_DataObj(Hub_Cnv_CtlData).arm;
     SrvDataHub_Monitor.data.throttle_percent = DataPipe_DataObj(Hub_Cnv_CtlData).throttle_percent;
     SrvDataHub_Monitor.data.failsafe = DataPipe_DataObj(Hub_Cnv_CtlData).failsafe;
@@ -180,6 +203,52 @@ static void SrvDataHub_PipeConvertControlDataFinish_Callback(DataPipeObj_TypeDef
     SrvDataHub_Monitor.data.exp_roll = DataPipe_DataObj(Hub_Cnv_CtlData).roll;
 
     SrvDataHub_Monitor.update_reg.bit.cnv_control_data = false;
+}
+
+static void SrvDataHub_RawIMUData_DataPipe_Finish_Callback(DataPipeObj_TypeDef *obj)
+{
+    if (!SrvDataHub_Monitor.init_state || (obj == NULL) || (obj != &RawIMU_hub_DataPipe))
+        return;
+
+    SrvDataHub_Monitor.update_reg.bit.imu_data = true;
+
+    if (SrvDataHub_Monitor.inuse_reg.bit.imu_data)
+        SrvDataHub_Monitor.inuse_reg.bit.imu_data = false;
+
+    SrvDataHub_Monitor.update_reg.bit.imu_data = false;
+}
+
+static void SrvDataHub_RawMagData_DataPipe_Finish_Callback(DataPipeObj_TypeDef *obj)
+{
+    if (!SrvDataHub_Monitor.init_state || (obj == NULL) || (obj != &RawMag_hub_DataPipe))
+        return;
+
+    SrvDataHub_Monitor.update_reg.bit.mag_data = true;
+
+    if (SrvDataHub_Monitor.inuse_reg.bit.mag_data)
+        SrvDataHub_Monitor.inuse_reg.bit.mag_data = false;
+
+    SrvDataHub_Monitor.data.mag_update_time = DataPipe_DataObj(Hub_Mag).time_stamp;
+    memcpy(SrvDataHub_Monitor.data.raw_mag, DataPipe_DataObj(Hub_Mag).mag, sizeof(SrvDataHub_Monitor.data.raw_mag));
+
+    SrvDataHub_Monitor.update_reg.bit.mag_data = false;
+}
+
+static void SrvDataHub_RawBaroData_DataPipe_Finish_Callback(DataPipeObj_TypeDef *obj)
+{
+    if (!SrvDataHub_Monitor.init_state || (obj == NULL) || (obj != &RawBaro_hub_DataPipe))
+        return;
+
+    SrvDataHub_Monitor.update_reg.bit.baro_data = true;
+
+    if (SrvDataHub_Monitor.inuse_reg.bit.baro_data)
+        SrvDataHub_Monitor.inuse_reg.bit.baro_data = false;
+
+    SrvDataHub_Monitor.data.baro_update_time = DataPipe_DataObj(Hub_Baro).time_stamp;
+    SrvDataHub_Monitor.data.baro_pres = DataPipe_DataObj(Hub_Baro).pres;
+    SrvDataHub_Monitor.data.baro_temp = DataPipe_DataObj(Hub_Baro).temp;
+
+    SrvDataHub_Monitor.update_reg.bit.baro_data = false;
 }
 
 static void SrvDataHub_NavData_DataPipe_Finish_Callback(DataPipeObj_TypeDef *obj)

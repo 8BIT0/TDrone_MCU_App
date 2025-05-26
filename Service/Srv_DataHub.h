@@ -23,26 +23,23 @@ typedef union
 {
     struct
     {
-        uint32_t sensor_init : 1;           // bit : 0
-
-        uint32_t navi_data : 1;             // bit : 1
-
-        uint32_t range_imu : 1;             // bit : 2
-        uint32_t range_mag : 1;             // bit : 3
-        uint32_t range_baro : 1;            // bit : 4
-        uint32_t range_tof : 1;             // bit : 5
-        uint32_t range_flow : 1;            // bit : 6
-        
-        uint32_t cnv_control_data : 1;      // bit : 7
-        uint32_t rc_control_data : 1;       // bit : 8
-        
-        uint32_t actuator : 1;              // bit : 9
-        uint32_t USB_VCP_attach : 1;        // bit : 10
-
-        uint32_t cli : 1;                   // bit : 11
-        uint32_t upgrade : 1;               // bit : 12
-
-        uint32_t res : 20;                  // bit : 13 ~ 32
+        uint32_t sensor_init        : 1;    // bit : 0
+        uint32_t navi_data          : 1;    // bit : 1
+        uint32_t imu_data           : 1;    // bit : 2
+        uint32_t baro_data          : 1;    // bit : 3
+        uint32_t mag_data           : 1;    // bit : 4
+        uint32_t range_imu          : 1;    // bit : 5
+        uint32_t range_mag          : 1;    // bit : 6
+        uint32_t range_baro         : 1;    // bit : 7
+        uint32_t range_tof          : 1;    // bit : 8
+        uint32_t range_flow         : 1;    // bit : 9
+        uint32_t cnv_control_data   : 1;    // bit : 10
+        uint32_t rc_control_data    : 1;    // bit : 11
+        uint32_t actuator           : 1;    // bit : 12
+        uint32_t USB_VCP_attach     : 1;    // bit : 13
+        uint32_t cli                : 1;    // bit : 14
+        uint32_t upgrade            : 1;    // bit : 15
+        uint32_t res                : 16;   // bit : 16 ~ 32
     } bit;
 
     uint32_t val;
@@ -52,9 +49,6 @@ typedef struct
 {
     int16_t gyro_range[2];
     int16_t acc_range[2];
-    int16_t mag_range[2];
-    int16_t baro_range[2];
-    int16_t tof_range[2];
 
     uint32_t navi_update_time;
     float navi_roll;
@@ -93,7 +87,7 @@ typedef struct
 
     uint32_t baro_update_time;
     float baro_pres;
-    float baro_alt;
+    float baro_temp;
 
     uint32_t imu_update_time;
     float raw_acc[Axis_Sum];

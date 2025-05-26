@@ -185,17 +185,12 @@ static bool DevIST8310_Sample(DevIST8310Obj_TypeDef *obj)
     /* set mag axis data */
     for (uint8_t i = Mag_Axis_X; i < Mag_Axis_Sum; i++)
     {
-        obj->data.raw_mag[i] = (int16_t)(mag_tmp[i * 2 + 1] << 8) | mag_tmp[i * 2];
-
         /* convert unit */
-        obj->data.mag[i] = (float)(obj->data.raw_mag[i] * IST8310_MAG_FACTORY);
+        obj->data.mag[i] = (float)(((int16_t)(mag_tmp[i * 2 + 1] << 8) | mag_tmp[i * 2]) * IST8310_MAG_FACTORY);
     }
 
     /* set mag temperature */
-    obj->data.raw_mag_temp = (int16_t)(temp_tmp[1] << 8) | temp_tmp[0];
-
-    /* test */
-    obj->data.mag_temp = obj->data.raw_mag_temp;
+    obj->data.mag_temp = (int16_t)(temp_tmp[1] << 8) | temp_tmp[0];
     obj->update_cnt ++;
     return true;
 }

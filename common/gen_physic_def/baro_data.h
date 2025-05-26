@@ -12,16 +12,7 @@ extern "C" {
 typedef struct
 {
     uint32_t time_stamp;
-
-    /* set if have */
-    int32_t raw_i_pres;
-    int16_t raw_i_temp;
-
-    /* set if have */
-    float raw_f_pres;
-    float raw_f_temp;
-
-    float pressure;
+    float pres;
     float temp;
 } BaroData_TypeDef;
 

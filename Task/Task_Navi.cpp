@@ -129,7 +129,7 @@ void TaskNavi_Core(void const *arg)
         /* set navigation data */
 
         /* pipe data to data hub */
-        memcpy(DataPipe_DataObjAddr(Smp_Navi), &NaviData, sizeof(NaviData_TypeDef));
+        DataPipe_DataObj(Smp_Navi) = NaviData;
         DataPipe_SendTo(&Navi_smp_DataPipe, &Navi_hub_DataPipe);
 
         /* check imu data update freq on test */
