@@ -40,6 +40,10 @@ static bool SrvDataHub_Get_RelativeAlt(uint32_t *time_stamp, float *alt, float *
 static bool SrvDataHub_Get_Convert_ControlData(uint32_t *time_stamp, bool *arm, bool *failsafe, float *pitch, float *roll, float *gx, float *gy, float *gz);
 static bool SrvDataHub_Get_Actuator(uint32_t *time_stamp, int16_t *moto_ch, int16_t *servo_ch);
 
+static bool SrvDataHub_Get_IMU(uint32_t *time_stamp, float *gx, float *gy, float *gz, float *ax, float *ay, float *az);
+static bool SrvDataHub_Get_Baro(uint32_t *time_stamp, float *press, float *temp);
+static bool SrvDatHub_Get_Mag(uint32_t *time_stamp, float *mx, float *my, float *mz);
+
 static bool SrvDataHub_Set_CLI_State(bool state);
 static bool SrvDataHub_Set_Upgrade_State(bool state);
 
@@ -56,6 +60,11 @@ SrvDataHub_TypeDef SrvDataHub = {
     .get_upgrade_state = SrvDataHub_Get_Upgrade_State,
     .get_relative_alt = SrvDataHub_Get_RelativeAlt,
     .get_cnv_control_data = SrvDataHub_Get_Convert_ControlData,
+
+    /* sensor data */
+    .get_imu = SrvDataHub_Get_IMU,
+    .get_mag = SrvDataHub_Get_Baro,
+    .get_baro = SrvDatHub_Get_Mag,
 
     .set_cli_state = SrvDataHub_Set_CLI_State,
     .set_upgrade_state = SrvDataHub_Set_Upgrade_State,
@@ -504,6 +513,86 @@ reupdate_vcp_attach_state:
 
     SrvDataHub_Monitor.inuse_reg.bit.USB_VCP_attach = false;
     
+    return true;
+}
+
+
+static bool SrvDataHub_Get_IMU(uint32_t *time_stamp, float *gx, float *gy, float *gz, float *ax, float *ay, float *az)
+{
+reupdate_raw_imu:
+    SrvDataHub_Monitor.inuse_reg.bit.imu_data = true;
+
+    if (time_stamp)
+        *time_stamp = SrvDataHub_Monitor.data.imu_update_time;
+
+    if (gx)
+        *gx = SrvDataHub_Monitor.data.raw_gyr[Axis_X];
+
+    if (gy)
+        *gy = SrvDataHub_Monitor.data.raw_gyr[Axis_Y];
+
+    if (gz)
+        *gz = SrvDataHub_Monitor.data.raw_gyr[Axis_Z];
+
+    if (ax)
+        *ax = SrvDataHub_Monitor.data.raw_acc[Axis_X];
+
+    if (ay)
+        *ay = SrvDataHub_Monitor.data.raw_acc[Axis_Y];
+
+    if (az)
+        *az = SrvDataHub_Monitor.data.raw_acc[Axis_Z];
+
+    if (!SrvDataHub_Monitor.inuse_reg.bit.imu_data)
+        goto reupdate_raw_imu;
+
+    SrvDataHub_Monitor.inuse_reg.bit.imu_data = false;
+    return true;
+}
+
+static bool SrvDataHub_Get_Baro(uint32_t *time_stamp, float *press, float *temp)
+{
+reupdate_raw_baro:
+    SrvDataHub_Monitor.inuse_reg.bit.baro_data = true;
+
+    if (time_stamp)
+        *time_stamp = SrvDataHub_Monitor.data.baro_update_time;
+
+    if (press)
+        *press = SrvDataHub_Monitor.data.baro_pres;
+
+    if (temp)
+        *temp = SrvDataHub_Monitor.data.baro_temp;
+
+    if (!SrvDataHub_Monitor.inuse_reg.bit.baro_data)
+        goto reupdate_raw_baro;
+
+    SrvDataHub_Monitor.inuse_reg.bit.baro_data = false;
+
+    return true;
+}
+
+static bool SrvDatHub_Get_Mag(uint32_t *time_stamp, float *mx, float *my, float *mz)
+{
+reupdate_raw_mag:
+    SrvDataHub_Monitor.inuse_reg.bit.mag_data = true;
+
+    if (time_stamp)
+        *time_stamp = SrvDataHub_Monitor.data.mag_update_time;
+
+    if (mx)
+        *mx = SrvDataHub_Monitor.data.raw_mag[Mag_Axis_X];
+
+    if (my)
+        *my = SrvDataHub_Monitor.data.raw_mag[Mag_Axis_Y];
+
+    if (mz)
+        *mz = SrvDataHub_Monitor.data.raw_mag[Mag_Axis_Z];
+
+    if (!SrvDataHub_Monitor.inuse_reg.bit.mag_data)
+        goto reupdate_raw_mag;
+
+    SrvDataHub_Monitor.inuse_reg.bit.mag_data = false;
     return true;
 }
 

@@ -133,6 +133,11 @@ typedef struct
     bool (*get_cli_state)(bool *state);
     bool (*get_vcp_attach_state)(bool *state);
 
+    /* sensor data */
+    bool (*get_imu)(uint32_t *time_stamp, float *gx, float *gy, float *gz, float *ax, float *ay, float *az);
+    bool (*get_mag)(uint32_t *time_stamp, float *mx, float *my, float *mz);
+    bool (*get_baro)(uint32_t *time_stamp, float *press, float *temp);
+
     bool (*get_attitude)(uint32_t *time_stamp, float *pitch, float *roll, float *yaw, float *heading);
     bool (*get_rc_control_data)(ControlData_TypeDef *data);
     bool (*get_cnv_control_data)(uint32_t *time_stamp, bool *arm, bool *failsafe, float *pitch, float *roll, float *gx, float *gy, float *gz);
