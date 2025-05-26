@@ -129,6 +129,8 @@ void TaskNavi_Core(void const *arg)
         /* set navigation data */
 
         /* pipe data to data hub */
+        memcpy(DataPipe_DataObjAddr(Smp_Navi), &NaviData, sizeof(NaviData_TypeDef));
+        DataPipe_SendTo(&Navi_smp_DataPipe, &Navi_hub_DataPipe);
 
         /* check imu data update freq on test */
         SrvOsCommon.precise_delay(&prv_time, TaskNavi_Monitor.period);
@@ -181,15 +183,36 @@ static void TaskNavi_Module_Sample(uint32_t sys_time)
 
     /* sample imu */
     if (TaskNavi_ModuleSample_Trigger(sys_time, &TaskNavi_Monitor.imu_sampled_time, TaskNavi_Monitor.imu_sample_period) && SrvIMU.sample())
+    {
         TaskNavi_Monitor.sample_state.bit.imu = SrvIMU.get(&imu_data);
+
+        if (TaskNavi_Monitor.sample_state.bit.imu)
+        {
+            /* pipe raw imu data */
+        }
+    }
 
     /* sample baro */
     if (TaskNavi_ModuleSample_Trigger(sys_time, &TaskNavi_Monitor.baro_sampled_time, TaskNavi_Monitor.baro_sample_period) && SrvBaro.sample())
+    {
         TaskNavi_Monitor.sample_state.bit.baro = SrvBaro.get(&baro_data);
+
+        if (TaskNavi_Monitor.sample_state.bit.baro)
+        {
+            /* pipe raw baro data */
+        }
+    }
 
     /* sample mag */
     if (TaskNavi_ModuleSample_Trigger(sys_time, &TaskNavi_Monitor.mag_sampled_time, TaskNavi_Monitor.mag_sample_period) && SrvMag.sample())
+    {
         TaskNavi_Monitor.sample_state.bit.mag = SrvMag.get(&mag_data);
+
+        if (TaskNavi_Monitor.sample_state.bit.mag)
+        {
+            /* pipe raw mag data */
+        }
+    }
 
     /* sample ToF */
 
