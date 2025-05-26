@@ -221,6 +221,10 @@ static void SrvDataHub_RawIMUData_DataPipe_Finish_Callback(DataPipeObj_TypeDef *
 
     SrvDataHub_Monitor.update_reg.bit.imu_data = true;
 
+    SrvDataHub_Monitor.data.imu_update_time = DataPipe_DataObj(Hub_IMU).time_stamp;
+    memcpy(SrvDataHub_Monitor.data.raw_acc, DataPipe_DataObj(Hub_IMU).acc_flt, sizeof(SrvDataHub_Monitor.data.raw_acc));
+    memcpy(SrvDataHub_Monitor.data.raw_gyr, DataPipe_DataObj(Hub_IMU).gyr_flt, sizeof(SrvDataHub_Monitor.data.raw_gyr));
+
     if (SrvDataHub_Monitor.inuse_reg.bit.imu_data)
         SrvDataHub_Monitor.inuse_reg.bit.imu_data = false;
 
