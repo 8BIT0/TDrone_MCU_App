@@ -37,6 +37,9 @@ using namespace Eigen;
 
 /* internal variable */
 DataPipe_CreateDataObj(NaviData_TypeDef, Smp_Navi);
+DataPipe_CreateDataObj(MagData_TypeDef, Smp_Mag);
+DataPipe_CreateDataObj(BaroData_TypeDef, Smp_Baro);
+DataPipe_CreateDataObj(IMUData_TypeDef, Smp_IMU);
 static NaviData_TypeDef NaviData;
 
 /* internal function */
@@ -63,6 +66,21 @@ void TaskNavi_Init(uint32_t period)
     Navi_smp_DataPipe.data_addr = (uint32_t)DataPipe_DataObjAddr(Smp_Navi);
     Navi_smp_DataPipe.data_size = DataPipe_DataSize(Smp_Navi);
     DataPipe_Enable(&Navi_smp_DataPipe);
+
+    memset(DataPipe_DataObjAddr(Smp_Mag), 0, DataPipe_DataSize(Smp_Mag));
+    RawMag_smp_DataPipe.data_addr = (uint32_t)DataPipe_DataObjAddr(Smp_Mag);
+    RawMag_smp_DataPipe.data_size = DataPipe_DataSize(Smp_Mag);
+    DataPipe_Enable(&RawMag_smp_DataPipe);
+
+    memset(DataPipe_DataObjAddr(Smp_Baro), 0, DataPipe_DataSize(Smp_Baro));
+    RawBaro_smp_DataPipe.data_addr = (uint32_t)DataPipe_DataObjAddr(Smp_Baro);
+    RawBaro_smp_DataPipe.data_size = DataPipe_DataSize(Smp_Baro);
+    DataPipe_Enable(&RawBaro_smp_DataPipe);
+
+    memset(DataPipe_DataObjAddr(Smp_IMU), 0, DataPipe_DataSize(Smp_IMU));
+    RawIMU_smp_DataPipe.data_addr = (uint32_t)DataPipe_DataObjAddr(Smp_IMU);
+    RawIMU_smp_DataPipe.data_size = DataPipe_DataSize(Smp_IMU);
+    DataPipe_Enable(&RawIMU_smp_DataPipe);
 
     /* IMU  init */
     /* Max sample rate 1KHz */
@@ -184,33 +202,44 @@ static void TaskNavi_Module_Sample(uint32_t sys_time)
     /* sample imu */
     if (TaskNavi_ModuleSample_Trigger(sys_time, &TaskNavi_Monitor.imu_sampled_time, TaskNavi_Monitor.imu_sample_period) && SrvIMU.sample())
     {
-        TaskNavi_Monitor.sample_state.bit.imu = SrvIMU.get(&imu_data);
-
-        if (TaskNavi_Monitor.sample_state.bit.imu)
+        TaskNavi_Monitor.sample_state.bit.imu = false;
+        if (SrvIMU.get(&imu_data))
         {
             /* pipe raw imu data */
+            DataPipe_DataObj(Smp_IMU).time_stamp = imu_data.time_stamp;
+            memcpy(DataPipe_DataObj(Smp_IMU).acc_flt, imu_data.org_acc, sizeof(imu_data.org_acc));
+            memcpy(DataPipe_DataObj(Smp_IMU).gyr_flt, imu_data.org_gyr, sizeof(imu_data.org_gyr));
+            DataPipe_SendTo(&RawIMU_smp_DataPipe, &RawIMU_hub_DataPipe);
+            TaskNavi_Monitor.sample_state.bit.imu = true;
         }
     }
 
     /* sample baro */
     if (TaskNavi_ModuleSample_Trigger(sys_time, &TaskNavi_Monitor.baro_sampled_time, TaskNavi_Monitor.baro_sample_period) && SrvBaro.sample())
     {
-        TaskNavi_Monitor.sample_state.bit.baro = SrvBaro.get(&baro_data);
-
-        if (TaskNavi_Monitor.sample_state.bit.baro)
+        TaskNavi_Monitor.sample_state.bit.baro = false;
+        if (SrvBaro.get(&baro_data))
         {
             /* pipe raw baro data */
+            DataPipe_DataObj(Smp_Baro).time_stamp = baro_data.time_stamp;
+            DataPipe_DataObj(Smp_Baro).pres = baro_data.pressure;
+            DataPipe_DataObj(Smp_Baro).temp = baro_data.tempra;
+            DataPipe_SendTo(&RawBaro_smp_DataPipe, &RawBaro_hub_DataPipe);
+            TaskNavi_Monitor.sample_state.bit.baro = true;
         }
     }
 
     /* sample mag */
     if (TaskNavi_ModuleSample_Trigger(sys_time, &TaskNavi_Monitor.mag_sampled_time, TaskNavi_Monitor.mag_sample_period) && SrvMag.sample())
     {
-        TaskNavi_Monitor.sample_state.bit.mag = SrvMag.get(&mag_data);
-
-        if (TaskNavi_Monitor.sample_state.bit.mag)
+        TaskNavi_Monitor.sample_state.bit.mag = false;
+        if (SrvMag.get(&mag_data))
         {
             /* pipe raw mag data */
+            DataPipe_DataObj(Smp_Mag).time_stamp = mag_data.time_stamp;
+            memcpy(DataPipe_DataObj(Smp_Mag).mag, mag_data.raw_mag, sizeof(mag_data.raw_mag));
+            DataPipe_SendTo(&RawMag_smp_DataPipe, &RawMag_hub_DataPipe);
+            TaskNavi_Monitor.sample_state.bit.mag = true;
         }
     }
 

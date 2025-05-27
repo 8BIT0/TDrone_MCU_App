@@ -16,7 +16,6 @@ SrvComProto_Monitor_TypeDef SrvComProto_monitor = {
 
 /* internal function */
 static uint16_t SrvComProto_MavMsg_Raw_IMU(SrvComProto_MsgInfo_TypeDef *pck);
-static uint16_t SrvComProto_MavMsg_Scaled_IMU(SrvComProto_MsgInfo_TypeDef *pck);
 static uint16_t SrvComProto_MavMsg_Attitude(SrvComProto_MsgInfo_TypeDef *pck);
 static uint16_t SrvConProto_MavMsg_RC(SrvComProto_MsgInfo_TypeDef *pck);
 static uint16_t SrvComProto_MavMsg_Altitude(SrvComProto_MsgInfo_TypeDef *pck);
@@ -113,10 +112,6 @@ static bool Srv_ComProto_MsgObj_Init(SrvComProto_MsgInfo_TypeDef *msg, SrvComPro
         msg->pack_callback = To_DataPack_Callback(SrvComProto_MavMsg_Raw_IMU);
         break;
 
-    case MAV_CompoID_Scaled_IMU:
-        msg->pack_callback = To_DataPack_Callback(SrvComProto_MavMsg_Scaled_IMU);
-        break;
-
     case MAV_CompoID_MotoCtl:
         msg->pack_callback = To_DataPack_Callback(SrvComProto_MavMsg_MotoActuator);
         break;
@@ -178,72 +173,41 @@ static bool SrvComProto_MsgEnable_Control(SrvComProto_MsgInfo_TypeDef *msg, bool
 /******************************************* Frame Out ****************************************/
 static uint16_t SrvComProto_MavMsg_Raw_IMU(SrvComProto_MsgInfo_TypeDef *pck)
 {
-    // uint32_t time_stamp = 0;
-    // float acc_scale = 0.0f;
-    // float gyr_scale = 0.0f;
-    // float acc_x = 0.0f;
-    // float acc_y = 0.0f;
-    // float acc_z = 0.0f;
-    // float gyr_x = 0.0f;
-    // float gyr_y = 0.0f;
-    // float gyr_z = 0.0f;
-    // float tmpr = 0.0f;
-    // uint8_t imu_err_code = 0;
+    uint32_t imu_time = 0;
+    uint32_t mag_time = 0;
+    float acc_x = 0.0f;
+    float acc_y = 0.0f;
+    float acc_z = 0.0f;
+    float gyr_x = 0.0f;
+    float gyr_y = 0.0f;
+    float gyr_z = 0.0f;
+    float mag_x = 0.0f;
+    float mag_y = 0.0f;
+    float mag_z = 0.0f;
 
-    // SrvDataHub.get_raw_imu(&time_stamp, &acc_scale, &gyr_scale, &acc_x, &acc_y, &acc_z, &gyr_x, &gyr_y, &gyr_z, &tmpr, &imu_err_code);
+    SrvDataHub.get_imu(&imu_time, &gyr_x, &gyr_y, &gyr_z, &acc_x, &acc_y, &acc_z);
+    SrvDataHub.get_mag(&mag_time, &mag_x, &mag_y, &mag_z);
 
-    // int16_t i_acc_x = (int16_t)(acc_x * acc_scale);
-    // int16_t i_acc_y = (int16_t)(acc_y * acc_scale);
-    // int16_t i_acc_z = (int16_t)(acc_z * acc_scale);
+    int16_t i_acc_x = (int16_t)(acc_x * 1000.0f);
+    int16_t i_acc_y = (int16_t)(acc_y * 1000.0f);
+    int16_t i_acc_z = (int16_t)(acc_z * 1000.0f);
 
-    // int16_t i_gyr_x = (int16_t)(gyr_x * gyr_scale);
-    // int16_t i_gyr_y = (int16_t)(gyr_y * gyr_scale);
-    // int16_t i_gyr_z = (int16_t)(gyr_z * gyr_scale);
+    int16_t i_gyr_x = (int16_t)(gyr_x * 1000.0f);
+    int16_t i_gyr_y = (int16_t)(gyr_y * 1000.0f);
+    int16_t i_gyr_z = (int16_t)(gyr_z * 1000.0f);
 
-    // /* we dont have any mag sensor currently */
-    // return mavlink_msg_scaled_imu_pack_chan(pck->pck_info.system_id,
-    //                                         pck->pck_info.component_id,
-    //                                         pck->pck_info.chan, pck->msg_obj,
-    //                                         time_stamp,
-    //                                         i_acc_x, i_acc_y, i_acc_z,
-    //                                         i_gyr_x, i_gyr_y, i_gyr_z,
-    //                                         0, 0, 0);
-    return 0;
-}
+    int16_t i_mag_x = (int16_t)(mag_x * 1000.0f);
+    int16_t i_mag_y = (int16_t)(mag_y * 1000.0f);
+    int16_t i_mag_z = (int16_t)(mag_z * 1000.0f);
 
-static uint16_t SrvComProto_MavMsg_Scaled_IMU(SrvComProto_MsgInfo_TypeDef *pck)
-{
-    // uint32_t time_stamp = 0;
-    // float acc_scale = 0.0f;
-    // float gyr_scale = 0.0f;
-    // float acc_x = 0.0f;
-    // float acc_y = 0.0f;
-    // float acc_z = 0.0f;
-    // float gyr_x = 0.0f;
-    // float gyr_y = 0.0f;
-    // float gyr_z = 0.0f;
-    // float tmpr = 0.0f;
-    // uint8_t imu_err_code = 0;
-
-    // SrvDataHub.get_scaled_imu(&time_stamp, &acc_scale, &gyr_scale, &acc_x, &acc_y, &acc_z, &gyr_x, &gyr_y, &gyr_z, &tmpr, &imu_err_code);
-
-    // int16_t i_acc_x = (int16_t)(acc_x * acc_scale);
-    // int16_t i_acc_y = (int16_t)(acc_y * acc_scale);
-    // int16_t i_acc_z = (int16_t)(acc_z * acc_scale);
-
-    // int16_t i_gyr_x = (int16_t)(gyr_x * gyr_scale);
-    // int16_t i_gyr_y = (int16_t)(gyr_y * gyr_scale);
-    // int16_t i_gyr_z = (int16_t)(gyr_z * gyr_scale);
-
-    // /* we dont have any mag sensor currently */
-    // return mavlink_msg_scaled_imu_pack_chan(pck->pck_info.system_id,
-    //                                         pck->pck_info.component_id,
-    //                                         pck->pck_info.chan, pck->msg_obj,
-    //                                         time_stamp,
-    //                                         i_acc_x, i_acc_y, i_acc_z,
-    //                                         i_gyr_x, i_gyr_y, i_gyr_z,
-    //                                         0, 0, 0);
-    return 0;
+    /* we dont have any mag sensor currently */
+    return mavlink_msg_scaled_imu_pack_chan(pck->pck_info.system_id,
+                                            pck->pck_info.component_id,
+                                            pck->pck_info.chan, pck->msg_obj,
+                                            imu_time,
+                                            i_acc_x, i_acc_y, i_acc_z,
+                                            i_gyr_x, i_gyr_y, i_gyr_z,
+                                            i_mag_x, i_mag_y, i_mag_z);
 }
 
 /* just fot temporary will create custom message in the next */
@@ -329,11 +293,11 @@ static uint16_t SrvComProto_MavMsg_Altitude(SrvComProto_MsgInfo_TypeDef *pck)
 
 static uint16_t SrvComProto_MavMsg_MotoActuator(SrvComProto_MsgInfo_TypeDef *pck)
 {
-    uint32_t time_stamp = 0;
-    uint8_t moto_num = 0;
-    int16_t m_b[ACTUATOR_MOTO_COUNT];
+    // uint32_t time_stamp = 0;
+    // uint8_t moto_num = 0;
+    // int16_t m_b[ACTUATOR_MOTO_COUNT];
 
-    memset(m_b, 0, sizeof(m_b));
+    // memset(m_b, 0, sizeof(m_b));
     // SrvDataHub.get_moto(&time_stamp, m_b);
 
     // return mavlink_msg_servo_output_raw_pack_chan(pck->pck_info.system_id,
@@ -348,14 +312,6 @@ static uint16_t SrvComProto_MavMsg_MotoActuator(SrvComProto_MsgInfo_TypeDef *pck
 
 /******************************************* Frame Out ****************************************/
 /******************************************* Frame In  ****************************************/
-static void SrvComProto_MavMsg_Ack(SrvComProto_MsgObj_TypeDef *obj, uint16_t sys_id, uint16_t compo_id, bool state)
-{
-    if (obj)
-    {
-
-    }
-}
-
 static void SrvComProto_Set_MavMsgIn_Callback(SrvComProto_MsgObj_TypeDef *obj, SrvComProto_MavInMsgType_List type, SrvComProto_MavMsgIn_Callback callback, void *p_cus_data)
 {
     if (obj && p_cus_data)

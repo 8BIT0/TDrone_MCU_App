@@ -119,6 +119,8 @@ static bool SrvMag_Sample(void)
         !Monitor.dev_get(Monitor.dev_obj, &dev_mag_data))
         return false;
 
+    memcpy(raw_mag, dev_mag_data.mag, sizeof(raw_mag));
+
     /* doing ellipsoid fitting */
     SrvMag_EllipsoidFitting_Comput(raw_mag, elli_fix_mag);
 
@@ -144,6 +146,6 @@ static bool SrvMag_GetData(SrvMag_Data_TypeDef *p_data)
     if (!Monitor.init_state || (p_data == NULL))
         return false;
 
-    memcpy(&p_data, &Monitor.data, sizeof(SrvMag_Data_TypeDef));
+    memcpy(p_data, &Monitor.data, sizeof(SrvMag_Data_TypeDef));
     return true;
 }
