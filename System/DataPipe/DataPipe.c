@@ -53,6 +53,8 @@ bool DataPipe_SendTo(DataPipeObj_TypeDef *p_org, DataPipeObj_TypeDef *p_dst)
 
     Cur_Pluged_PipeObj.dst = p_dst;
     Cur_Pluged_PipeObj.org = p_org;
+    
+    SCB_CleanDCache_by_Addr((uint32_t *)p_org->data_addr, p_org->data_size);
 
 retry:
     Pipe_State = Pipe_Busy;
@@ -100,6 +102,7 @@ static void DataPipe_TransFinish_Callback(void *dma_hdl)
         if (Cur_Pluged_PipeObj.org->trans_finish_cb)
             Cur_Pluged_PipeObj.org->trans_finish_cb(Cur_Pluged_PipeObj.org);
 
+        SCB_InvalidateDCache_by_Addr((uint32_t *)Cur_Pluged_PipeObj.dst->data_addr, Cur_Pluged_PipeObj.dst->data_size);
         if (Cur_Pluged_PipeObj.dst->trans_finish_cb)
             Cur_Pluged_PipeObj.dst->trans_finish_cb(Cur_Pluged_PipeObj.dst);
 
@@ -132,7 +135,6 @@ static void DataPipe_TransError_Callback(void *dma_hdl)
         Cur_Pluged_PipeObj.dst = NULL;
         Cur_Pluged_PipeObj.org = NULL;
 
-#if defined STM32H743xx
         /*!< Transfer error */
         if (To_DMA_Handle_Ptr(dma_hdl)->ErrorCode & HAL_DMA_ERROR_TE)
         {
@@ -182,7 +184,6 @@ static void DataPipe_TransError_Callback(void *dma_hdl)
         if (To_DMA_Handle_Ptr(dma_hdl)->ErrorCode & HAL_DMA_ERROR_BUSY)
         {
         }
-#endif
         /* recover from error */
     }
 }

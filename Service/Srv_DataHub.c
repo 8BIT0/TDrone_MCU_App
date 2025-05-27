@@ -63,8 +63,8 @@ SrvDataHub_TypeDef SrvDataHub = {
 
     /* sensor data */
     .get_imu = SrvDataHub_Get_IMU,
-    .get_mag = SrvDataHub_Get_Baro,
-    .get_baro = SrvDatHub_Get_Mag,
+    .get_baro = SrvDataHub_Get_Baro,
+    .get_mag = SrvDatHub_Get_Mag,
 
     .set_cli_state = SrvDataHub_Set_CLI_State,
     .set_upgrade_state = SrvDataHub_Set_Upgrade_State,
