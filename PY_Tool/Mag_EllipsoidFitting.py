@@ -1,6 +1,7 @@
 import serial.tools.list_ports
+import os
+import time
 from pymavlink import mavutil
-from time import sleep
 import math
 
 def ThreeSigma_Check(data:list) -> list:
@@ -26,18 +27,18 @@ def ThreeSigma_Check(data:list) -> list:
 
 def Connect_SerialDev():
     avaliable_port = list(serial.tools.list_ports.comports())
-    research_cnt = research_cnt + 1
     os.system('clear')
     print("[ detected port number ] -------- ", len(avaliable_port))
 
     FC_Found = False
-    
+    mav_connection = None
+
     # if your operation system is windows make sure you install AT32 and STM32 VCP driver already
     if len(avaliable_port):
         for port_info in avaliable_port:
             print(port_info)
             # if (port_info.description.find('H7FC') >= 0) or (port_info.manufacturer.find('8_B!T0') >= 0):
-            if port_info.description.find('H7FC') >= 0:
+            if port_info.description.find('TDrone') >= 0:
                 FC_Found = True
                 print("\t[ Flight Controller Found ]")
                 print("\t[ --- PORT INFO --- ]")
@@ -51,20 +52,49 @@ def Connect_SerialDev():
                 print("\r\n")
                 break
 
+        if not FC_Found:
+            # manully check the flight controller is attach or not
+            while True:
+                input_code = input("select port: ")
+                try:
+                    input_code_i = int(input_code)
+                    if int(input_code_i) >= avaliable_port.__len__():
+                        print("input over range: {}".format(input_code_i))
+                        continue
+                    else:
+                        print("selected port: {}".format(avaliable_port[input_code_i]))
+                        port_info = avaliable_port[input_code_i]
+                        FC_Found = True
+                        break
+                except ValueError:
+                    print("Invalid input:{}".format(input_code))
+                    continue
+
     # if found flight controller is attach
     # then open seleceted port
     if FC_Found:
-        FC_port = serial.Serial(port_info.device, 460800, 5)
-        if FC_port.is_open:
-            print("[ Flight Controller Port Open Successed ]\r\n")
-            # communicate with the flight controller
-            sleep(0.2)
-
-            FC_port.close()
-            print("[ Flight Controller is disconnected ]")
-        else :
-            print("\t[ Flight Controller Port Open Failed ]")
-    else :
+        print("[ Flight Controller Port Open Successed ]\r\n")
+        # communicate with the flight controller
+        mav_connection = mavutil.mavlink_connection(port_info.device, baud = 460800, timeout = 5)
+        print("[ Flight Controller is disconnected ]")
+    else:
         print("\t[ Flight Controller Not Found ]")
-        print("\t[ Research ] ----------------- ", research_cnt)
-        sleep(1)
+
+    return mav_connection
+
+def Mavlink_Parse(mav_connection, timeout = 10):
+    if mav_connection is None:
+        return
+    
+    start_time = time.time()
+    print("mavlink parse start at {}".format(start_time))
+    while time.time() - start_time < timeout:
+        msg = mav_connection.recv_match(blocking = True, timeout = 1)
+        if msg.get_type() == 'SCALED_IMU':
+            for field in msg.get_fieldnames():
+                print(f"  {field}: {getattr(msg, field)}")
+
+
+connect = Connect_SerialDev()
+if connect is not None:
+    Mavlink_Parse(connect)
