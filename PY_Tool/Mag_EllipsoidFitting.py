@@ -7,6 +7,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import math
+import tkinter as tk
 
 def ThreeSigma_Check(data:list) -> list:
     if len(data) == 0:
