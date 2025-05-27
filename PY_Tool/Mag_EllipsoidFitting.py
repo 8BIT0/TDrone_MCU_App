@@ -6,8 +6,11 @@ from pymavlink import mavutil
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+from matplotlib.animation import FuncAnimation
 import math
 import tkinter as tk
+import threading
+import queue
 
 def ThreeSigma_Check(data:list) -> list:
     if len(data) == 0:
