@@ -204,7 +204,7 @@ static uint16_t SrvComProto_MavMsg_Raw_IMU(SrvComProto_MsgInfo_TypeDef *pck)
     return mavlink_msg_scaled_imu_pack_chan(pck->pck_info.system_id,
                                             pck->pck_info.component_id,
                                             pck->pck_info.chan, pck->msg_obj,
-                                            imu_time,
+                                            /* imu_time */mag_time,
                                             i_acc_x, i_acc_y, i_acc_z,
                                             i_gyr_x, i_gyr_y, i_gyr_z,
                                             i_mag_x, i_mag_y, i_mag_z);

@@ -1,7 +1,11 @@
 import serial.tools.list_ports
 import os
 import time
+from time import sleep
 from pymavlink import mavutil
+import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 import math
 
 def ThreeSigma_Check(data:list) -> list:
@@ -82,18 +86,52 @@ def Connect_SerialDev():
 
     return mav_connection
 
-def Mavlink_Parse(mav_connection, timeout = 10):
+def Mavlink_Parse(mav_connection, timeout = 60):
     if mav_connection is None:
         return
-    
+
+    x = np.array([0])
+    y = np.array([0])
+    z = np.array([0])
+
+    fig = plt.figure(figsize=(10, 8))
+    ax = fig.add_subplot(111, projection='3d')
+
     start_time = time.time()
     print("mavlink parse start at {}".format(start_time))
     while time.time() - start_time < timeout:
         msg = mav_connection.recv_match(blocking = True, timeout = 1)
         if msg.get_type() == 'SCALED_IMU':
             for field in msg.get_fieldnames():
-                print(f"  {field}: {getattr(msg, field)}")
+                if field == 'time_boot_ms':
+                    time_stamp = getattr(msg, field)
+                if field == 'xmag':
+                    xmag = getattr(msg, field) * 0.1
+                    x = np.append(x, xmag)
+                if field == 'ymag':
+                    ymag = getattr(msg, field) * 0.1
+                    y = np.append(y, ymag)
+                if field == 'zmag':
+                    zmag = getattr(msg, field) * 0.1
+                    z = np.append(z, zmag)
+            print("time_stamp: {} xmag: {} ymag: {} zmag: {}".format(time_stamp, xmag, ymag, zmag))
+        sleep(0.01)
 
+    scatter = ax.scatter(x, y, z, c=z, cmap='viridis', s=100, alpha=0.8)
+    ax.set_title('mag figure', fontsize=15)
+    ax.set_xlabel('X', fontsize=12)
+    ax.set_ylabel('Y', fontsize=12)
+    ax.set_zlabel('Z', fontsize=12)
+
+    ax.set_xlim(-500, 500)
+    ax.set_ylim(-500, 500)
+    ax.set_zlim(-500, 500) 
+    
+    cbar = plt.colorbar(scatter)
+    cbar.set_label('数值', rotation=270, labelpad=20)
+
+    plt.tight_layout()
+    plt.show()
 
 connect = Connect_SerialDev()
 if connect is not None:
