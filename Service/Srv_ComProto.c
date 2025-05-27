@@ -196,9 +196,9 @@ static uint16_t SrvComProto_MavMsg_Raw_IMU(SrvComProto_MsgInfo_TypeDef *pck)
     int16_t i_gyr_y = (int16_t)(gyr_y * 1000.0f);
     int16_t i_gyr_z = (int16_t)(gyr_z * 1000.0f);
 
-    int16_t i_mag_x = (int16_t)(mag_x * 1000.0f);
-    int16_t i_mag_y = (int16_t)(mag_y * 1000.0f);
-    int16_t i_mag_z = (int16_t)(mag_z * 1000.0f);
+    int16_t i_mag_x = (int16_t)(mag_x * 10.0f);
+    int16_t i_mag_y = (int16_t)(mag_y * 10.0f);
+    int16_t i_mag_z = (int16_t)(mag_z * 10.0f);
 
     /* we dont have any mag sensor currently */
     return mavlink_msg_scaled_imu_pack_chan(pck->pck_info.system_id,
