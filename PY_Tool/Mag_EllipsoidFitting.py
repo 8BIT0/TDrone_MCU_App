@@ -1,14 +1,11 @@
 import serial.tools.list_ports
 import os
-import time
 from time import sleep
 from pymavlink import mavutil
 import numpy as np
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.animation as animation
 import math
-import tkinter as tk
 import threading
 import queue
 
