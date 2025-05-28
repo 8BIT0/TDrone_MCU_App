@@ -88,7 +88,10 @@ def Connect_SerialDev():
         print("[ Flight Controller Port Open Successed ]\r\n")
         # communicate with the flight controller
         mav_connection = mavutil.mavlink_connection(port_info.device, baud = 460800, timeout = 5)
-        print("[ Flight Controller is connected ]")
+        if type(mav_connection) != None:
+            print("[ Flight Controller is connected ]")
+        else:
+            print("[ Flight Controller is not connected ]")
     else:
         print("\t[ Flight Controller Not Found ]")
 
