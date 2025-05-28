@@ -15,6 +15,7 @@ import queue
 scatter = None
 dsp_mag_x, dsp_mag_y, dsp_mag_z, color = [], [], [], []
 stop_event = threading.Event()
+mav_connection = None
 
 def ThreeSigma_Check(data:list) -> list:
     if len(data) == 0:
@@ -43,7 +44,6 @@ def Connect_SerialDev():
     print("[ detected port number ] -------- ", len(avaliable_port))
 
     FC_Found = False
-    mav_connection = None
 
     # if your operation system is windows make sure you install AT32 and STM32 VCP driver already
     if len(avaliable_port):
@@ -92,8 +92,6 @@ def Connect_SerialDev():
     else:
         print("\t[ Flight Controller Not Found ]")
 
-    return mav_connection
-
 def Canvas_Init():
     ax.set_xlim(-500, 500)
     ax.set_ylim(-500, 500)
@@ -125,7 +123,7 @@ def Canvas_Update(frame, queue, scatter):
 
     return (scatter,)
 
-def Mavlink_Parse(mav_connection, queue):
+def Mavlink_Parse(queue):
     if mav_connection is None:
         return
 
@@ -142,12 +140,13 @@ def Mavlink_Parse(mav_connection, queue):
 
 def on_close(event):
     print("quit...")
-    mavutil.set_close_on_exec(True)
     stop_event.set()
+    if type(mav_connection) != None:
+        mav_connection.close()
     plt.close()
 
-connect = Connect_SerialDev()
-if connect is not None:
+Connect_SerialDev()
+if mav_connection is not None:
     # create file
     # script_path = os.path.abspath(__file__)
     # cnv_file_name = os.path.dirname(script_path) + os.sep
@@ -164,7 +163,7 @@ if connect is not None:
     fig.canvas.mpl_connect('close_event', on_close)
 
     # create canvas for plot figure thread
-    serial_thread = threading.Thread(target = Mavlink_Parse, args = (connect, mag_queue))
+    serial_thread = threading.Thread(target = Mavlink_Parse, args = (mag_queue))
     serial_thread.start()
 
     ani = animation.FuncAnimation(fig,
