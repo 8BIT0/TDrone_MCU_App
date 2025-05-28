@@ -148,6 +148,14 @@ def on_close(event):
 
 connect = Connect_SerialDev()
 if connect is not None:
+    # create file
+    # script_path = os.path.abspath(__file__)
+    # cnv_file_name = os.path.dirname(script_path) + os.sep
+    # cnv_file_name = cnv_file_name + input('convert file name: ') + '.txt'
+    # with open(cnv_file_name, 'w') as cnv_file:
+    #     cnv_file.write(str_cnv)
+    #     cnv_file.close()
+
     mag_queue = queue.Queue()
     fig = plt.figure(figsize=(6, 4))
     ax = fig.add_subplot(111, projection='3d')
