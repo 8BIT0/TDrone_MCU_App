@@ -1,3 +1,14 @@
+import os
+from time import sleep
+from enum import Enum
+import math
+
+class MagData_Index(Enum):
+    Mag_Time        = 0
+    Mag_X           = 1
+    Mag_Y           = 2
+    Mag_Z           = 3
+
 def ThreeSigma_Check(data:list) -> list:
     if len(data) == 0:
         return []
@@ -18,3 +29,22 @@ def ThreeSigma_Check(data:list) -> list:
             new_data.append(d)
 
     return new_data
+
+def Load_DataFile() -> list:
+    file_path = input('[ Mag data file path ]:')
+    mag_data_list = []
+    try:
+        with open(file_path, 'r') as data:
+            for line in data:
+                mag_data_list.append(line.split(' '))
+            return mag_data_list
+    except FileNotFoundError:
+        print('[ File not exist ]')
+        return []
+    except PermissionError:
+        print('[ Access permission denied ]')
+        return []
+    except Exception as e:
+        print(f'[ Error: {e} ]')
+        return []
+    

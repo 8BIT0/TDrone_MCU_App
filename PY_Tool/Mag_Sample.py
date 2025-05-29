@@ -128,7 +128,6 @@ def Mavlink_Parse(queue):
             queue.put(mag_data)
 
 def on_close(event):
-    print("quit...")
     stop_event.set()
     if mav_connection is not None:
         print('[ Disconnect flight controller ]')
