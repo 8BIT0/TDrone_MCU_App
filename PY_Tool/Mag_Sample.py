@@ -107,20 +107,24 @@ def Canvas_Update(frame, queue, scatter):
     return (scatter,)
 
 def Mavlink_Parse(queue):
+    global mag_data_string
+
     if mav_connection is None:
         print('[ Mavlink connection ERROR ]')
         return
 
     while True:
         msg = mav_connection.recv_match(blocking = True, timeout = 0.1)
+        tmp_str = ''
         if msg is not None and msg.get_type() == 'SCALED_IMU':
             time_stamp = getattr(msg, 'time_boot_ms')
             xmag = round(getattr(msg, 'xmag') * 0.1, 2)
             ymag = round(getattr(msg, 'ymag') * 0.1, 2)
             zmag = round(getattr(msg, 'zmag') * 0.1, 2)
             mag_data = [time_stamp, xmag, ymag, zmag]
-            # tmp_str = str(time_stamp) + ' ' + str(xmag) + ' ' + str(ymag) + ' ' + str(zmag)
-            print(mag_data)
+            tmp_str = str(time_stamp) + ' ' + str(xmag) + ' ' + str(ymag) + ' ' + str(zmag) + '\r'
+            mag_data_string += tmp_str
+            print(tmp_str)
             queue.put(mag_data)
 
 def on_close(event):
@@ -133,7 +137,7 @@ def on_close(event):
     if mag_data_file is not None:
         # write data string to file
         print('[ Write data to data file ]')
-        # mag_data_file.write(mag_data_string)
+        mag_data_file.write(mag_data_string)
 
         print('[ Close data file ]')
         mag_data_file.close()
