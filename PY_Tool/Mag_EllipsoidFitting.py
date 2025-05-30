@@ -70,9 +70,9 @@ x_remove = ThreeSigma_Check(mag_x_org)
 y_remove = ThreeSigma_Check(mag_y_org)
 z_remove = ThreeSigma_Check(mag_z_org)
 
-print('x_remove {}'.format(x_remove))
-print('y_remove {}'.format(y_remove))
-print('z_remove {}'.format(z_remove))
+print(f'x_remove {x_remove}')
+print(f'y_remove {y_remove}')
+print(f'z_remove {z_remove}')
             
 remove_list = sorted(x_remove + y_remove + z_remove)
 print('remove_list {}'.format(remove_list))
