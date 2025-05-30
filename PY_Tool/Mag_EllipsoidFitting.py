@@ -133,3 +133,6 @@ center = -0.5 * np.array([a[6], a[7], a[8]]) @ np.linalg.inv(M)
 print(a)
 print(M)
 print(center)
+
+# fix mag data
+# mag_fix = M^-1 * (mag - center)
