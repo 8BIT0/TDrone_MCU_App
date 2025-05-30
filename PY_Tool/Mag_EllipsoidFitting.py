@@ -25,12 +25,14 @@ def ThreeSigma_Check(data:list) -> list:
     max_val = avg + 3 * std_dev
 
     # step3 check data should between the range [μ - 3σ,μ + 3σ] or else exclude the error data
-    new_data = []
+    remove_list = []
+    index = 0
     for d in data:
-        if d >= min_val and d <= max_val:
-            new_data.append(d)
+        if d < min_val and d > max_val:
+            remove_list.append(index)
+        index += 1
 
-    return new_data
+    return remove_list
 
 def Load_DataFile() -> list:
     file_path = input('[ Mag data file path ]:')
@@ -67,11 +69,35 @@ plt.ylabel('ms diff', fontsize=12)
 plt.tight_layout()
 plt.show()
 
+if len(mag_x_org) !=len(mag_y_org) or len(mag_y_org)!=len(mag_z_org):
+    print('[ Origin Mag data size not equal ]')
+    exit()
+
 # 3 sigma check
-# noticed doing 3 sigma check may occur some bug
-mag_x = np.array(ThreeSigma_Check(mag_x_org))
-mag_y = np.array(ThreeSigma_Check(mag_y_org))
-mag_z = np.array(ThreeSigma_Check(mag_z_org))
+x_remove = ThreeSigma_Check(mag_x_org)
+y_remove = ThreeSigma_Check(mag_y_org)
+z_remove = ThreeSigma_Check(mag_z_org)
+
+print('x_remove {}'.format(x_remove))
+print('y_remove {}'.format(y_remove))
+print('z_remove {}'.format(z_remove))
+            
+remove_list = sorted(x_remove + y_remove + z_remove)
+print('remove_list {}'.format(remove_list))
+
+# trim mag data list
+for index in sorted(remove_list, reverse=True):
+    del mag_x_org[index]
+    del mag_y_org[index]
+    del mag_z_org[index]
+
+mag_x = np.array(mag_x_org)
+mag_y = np.array(mag_y_org)
+mag_z = np.array(mag_z_org)
+
+if len(mag_x)!=len(mag_y) or len(mag_y)!=len(mag_z):
+    print('[ 3 sigma check Mag data size not equal ]')
+    exit()
 
 mag_x_mean = np.mean(mag_x)
 mag_y_mean = np.mean(mag_y)
