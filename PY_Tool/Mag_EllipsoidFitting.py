@@ -111,3 +111,20 @@ D = np.array([(x[i]**2, y[i]**2, z[i]**2, (x[i] * y[i]), (x[i] * z[i]), (y[i] * 
 
 # Least Squares
 # LS = (D.T * D)^-1 * D.T * I(unit matrix)
+D_pinv = np.linalg.pinv(D)
+a = D_pinv @ np.ones(data_size)
+
+# create M(3 x 3) matrix
+# M = [ a1,   a4/2, a5/2,
+#       a4/2, a2,   a6/2, 
+#       a5/2, a6/2, a3 ]
+M = np.array([a[0], (a[4] / 2), (a[5] / 2)]
+             [(a[4] / 2), a[2], (a[6] / 2)]
+             [(a[5] / 2), (a[6] / 2), a[3]])
+
+# center = -(1/2)[a7, a8, a9]M^-1
+center = -0.5 * np.array([a[6], a[7], a[8]]) @ np.linalg.inv(M)
+
+print(a)
+print(M)
+print(center)
