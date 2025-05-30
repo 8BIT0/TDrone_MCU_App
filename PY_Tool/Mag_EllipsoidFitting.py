@@ -105,6 +105,12 @@ x = mag_x - mag_x_mean
 y = mag_y - mag_y_mean
 z = mag_z - mag_z_mean
 
+print(f'x mean: {mag_x_mean}')
+print(f'y mean: {mag_y_mean}')
+print(f'z mean: {mag_z_mean}')
+
+# plot new mag data
+
 # a1x^2 + a2y^2 + a3z^2 + a4xy + a5xz + a6yz + a7x + a8y + a9z = 1
 # x^2, y^2, z^2, xy, xz, yz, x, y, z
 D = np.array([(x[i]**2, y[i]**2, z[i]**2, (x[i] * y[i]), (x[i] * z[i]), (y[i] * z[i]), x[i], y[i], z[i]) for i in range(data_size)])
