@@ -111,8 +111,7 @@ D = np.array([(x[i]**2, y[i]**2, z[i]**2, (x[i] * y[i]), (x[i] * z[i]), (y[i] * 
 
 # Least Squares
 # LS = (D.T * D)^-1 * D.T * I(unit matrix)
-D_pinv = np.linalg.pinv(D)
-a = D_pinv @ np.ones(data_size)
+a = np.linalg.pinv(D) @ np.ones(data_size)
 
 # create M(3 x 3) matrix
 # M = [ a1,   a4/2, a5/2,
