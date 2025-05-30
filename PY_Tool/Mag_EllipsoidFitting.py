@@ -36,7 +36,7 @@ def Load_DataFile() -> list:
     try:
         with open(file_path, 'r') as data:
             for line in data:
-                mag_data_list.append(line.split(' '))
+                mag_data_list.append(line[:-1].split(' '))
             return mag_data_list
     except FileNotFoundError:
         print('[ File not exist ]')
@@ -53,7 +53,17 @@ if len(mag_data) == 0:
     print('[ Load Mag data failed ]')
     exit()
 
-time_stamp_list, mag_x_org, mag_y_org, mag_z_org = mag_data
+time_stamp_list = []
+mag_x_org = []
+mag_y_org = []
+mag_z_org = []
+
+# /Users/bit8/Desktop/develop/TDrone/TDrone_MCU_App/PY_Tool/mag_1.txt
+for d in mag_data:
+    time_stamp_list.append(int(d[0]))
+    mag_x_org.append(float(d[1]))
+    mag_y_org.append(float(d[2]))
+    mag_z_org.append(float(d[3]))
 diff_arr = np.diff(np.array(time_stamp_list)).tolist()
 
 # show mag data time stamp diff
@@ -76,15 +86,16 @@ z_remove = ThreeSigma_Check(mag_z_org)
 print(f'x_remove {x_remove}')
 print(f'y_remove {y_remove}')
 print(f'z_remove {z_remove}')
-            
+
 remove_list = sorted(x_remove + y_remove + z_remove)
-print('remove_list {}'.format(remove_list))
+print(f'remove_list {remove_list}')
 
 # trim mag data list
-for index in sorted(remove_list, reverse=True):
-    del mag_x_org[index]
-    del mag_y_org[index]
-    del mag_z_org[index]
+if len(remove_list) != 0:
+    for index in sorted(remove_list, reverse=True):
+        del mag_x_org[index]
+        del mag_y_org[index]
+        del mag_z_org[index]
 
 mag_x = np.array(mag_x_org)
 mag_y = np.array(mag_y_org)
@@ -98,7 +109,11 @@ mag_x_mean = np.mean(mag_x)
 mag_y_mean = np.mean(mag_y)
 mag_z_mean = np.mean(mag_z)
 
-if mag_x_mean == np.NaN or mag_y_mean == np.NaN or mag_z_mean == np.NaN:
+print(f'[ Mag X Mean {mag_x_mean} ]')
+print(f'[ Mag Y Mean {mag_y_mean} ]')
+print(f'[ Mag Z Mean {mag_z_mean} ]')
+
+if mag_x_mean == np.nan or mag_y_mean == np.nan or mag_z_mean == np.nan:
     print('[ mag data mean is NaN ]')
     exit()
 
@@ -107,10 +122,6 @@ data_size = len(mag_x)
 x = mag_x - mag_x_mean
 y = mag_y - mag_y_mean
 z = mag_z - mag_z_mean
-
-print(f'x mean: {mag_x_mean}')
-print(f'y mean: {mag_y_mean}')
-print(f'z mean: {mag_z_mean}')
 
 # plot new mag data
 
@@ -121,19 +132,19 @@ D = np.array([(x[i]**2, y[i]**2, z[i]**2, (x[i] * y[i]), (x[i] * z[i]), (y[i] * 
 # Least Squares
 # LS = (D.T * D)^-1 * D.T * I(unit matrix)
 a = np.linalg.pinv(D) @ np.ones(data_size)
+print(a)
 
 # create M(3 x 3) matrix
 # M = [ a1,   a4/2, a5/2,
 #       a4/2, a2,   a6/2, 
 #       a5/2, a6/2, a3 ]
-M = np.array([a[0], (a[4] / 2), (a[5] / 2)]
-             [(a[4] / 2), a[2], (a[6] / 2)]
-             [(a[5] / 2), (a[6] / 2), a[3]])
+M = np.array([[a[0], a[4]/2, a[5]/2],
+              [a[4]/2, a[2], a[6]/2],
+              [a[5]/2, a[6]/2, a[3]]])
 
 # center = -(1/2)[a7, a8, a9]M^-1
 center = -0.5 * np.array([a[6], a[7], a[8]]) @ np.linalg.inv(M)
 
-print(a)
 print(M)
 print(center)
 
