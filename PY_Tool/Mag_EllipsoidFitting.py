@@ -26,6 +26,10 @@ def ThreeSigma_Check(data:list) -> list:
 
     return remove_list
 
+def create_plot(data:list, name:str, xlabel:str, ylabel:str, color:str, marker:str, linestyle:str):
+    fig_tmp = plt.figure(figsize=(8, 6))
+    pass
+
 def Load_DataFile() -> list:
     file_path = input('[ Mag data file path ]:')
     mag_data_list = []
@@ -53,13 +57,12 @@ time_stamp_list, mag_x_org, mag_y_org, mag_z_org = mag_data
 diff_arr = np.diff(np.array(time_stamp_list)).tolist()
 
 # show mag data time stamp diff
-time_diff_fig = plt.figure(figsize=(8, 6))
+plt.figure(figsize=(8, 6))
 plt.plot(diff_arr, color='blue', marker='o', linestyle='-')
 plt.title('time diff', fontsize=16)
 plt.xlabel('sample point', fontsize=12)
 plt.ylabel('ms diff', fontsize=12)
 plt.tight_layout()
-plt.show()
 
 if len(mag_x_org) !=len(mag_y_org) or len(mag_y_org)!=len(mag_z_org):
     print('[ Origin Mag data size not equal ]')
@@ -136,3 +139,5 @@ print(center)
 
 # fix mag data
 # mag_fix = M^-1 * (mag - center)
+
+plt.show()
