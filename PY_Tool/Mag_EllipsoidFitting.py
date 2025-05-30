@@ -99,13 +99,15 @@ if mag_x_mean == np.NaN or mag_y_mean == np.NaN or mag_z_mean == np.NaN:
     print('[ mag data mean is NaN ]')
     exit()
 
-mag_x_elli = mag_x - mag_x_mean
-mag_y_elli = mag_y - mag_y_mean
-mag_z_elli = mag_z - mag_z_mean
+data_size = len(mag_x)
+
+x = mag_x - mag_x_mean
+y = mag_y - mag_y_mean
+z = mag_z - mag_z_mean
 
 # a1x^2 + a2y^2 + a3z^2 + a4xy + a5xz + a6yz + a7x + a8y + a9z = 1
 # x^2, y^2, z^2, xy, xz, yz, x, y, z
-
+D = np.array([(x[i]**2, y[i]**2, z[i]**2, (x[i] * y[i]), (x[i] * z[i]), (y[i] * z[i]), x[i], y[i], z[i]) for i in range(data_size)])
 
 # Least Squares
-# LS = (Mag_Mea.T * Mag_Mea)^-1 * Mag_Mea.T * I(unit matrix)
+# LS = (D.T * D)^-1 * D.T * I(unit matrix)
