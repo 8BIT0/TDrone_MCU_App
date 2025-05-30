@@ -1,15 +1,7 @@
 import os
-from time import sleep
-from enum import Enum
 import math
 import matplotlib.pyplot as plt
 import numpy as np
-
-class MagData_Index(Enum):
-    Mag_Time        = 0
-    Mag_X           = 1
-    Mag_Y           = 2
-    Mag_Z           = 3
 
 def ThreeSigma_Check(data:list) -> list:
     if len(data) == 0:
