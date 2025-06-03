@@ -5,6 +5,9 @@
 #include "error_log.h"
 #include "HW_Def.h"
 
+using namespace std;
+using namespace Eigen;
+
 typedef struct
 {
     float C[Mag_Axis_Sum];                  /* center point */
@@ -15,6 +18,9 @@ typedef struct
 {
     bool init_state;
     SrvMag_Data_TypeDef data;
+
+    Matrix<float, Mag_Axis_Sum, Mag_Axis_Sum> SoftIron_Matrix;
+    Matrix<float, 1, Mag_Axis_Sum> Center;
 
     void *dev_obj;
     bool (*dev_sample)(void *dev_obj);
@@ -45,9 +51,6 @@ SrvMag_TypeDef SrvMag = {
     .sample = SrvMag_Sample,
     .get    = SrvMag_GetData,
 };
-
-using namespace std;
-using namespace Eigen;
 
 static bool SrvMag_BusInit(void)
 {
@@ -85,6 +88,10 @@ static bool SrvMag_Init(void)
     /* bus init */
     if (!SrvMag_BusInit())
         return false;
+
+    /* set default soft iron fitting matrix */
+    Monitor.SoftIron_Matrix.setIdentity(Mag_Axis_Sum, Mag_Axis_Sum);
+    Monitor.Center.setZero(1, Mag_Axis_Sum);
 
     /* load ellipsoid fitting parameter */
 
