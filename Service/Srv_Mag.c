@@ -6,6 +6,12 @@
 
 typedef struct
 {
+    float C[Mag_Axis_Sum];                  /* center point */
+    float W[Mag_Axis_Sum][Mag_Axis_Sum];    /* soft iron fitting matrix */
+} SrvMag_CalibMatrix_TypeDef;
+
+typedef struct
+{
     bool init_state;
     SrvMag_Data_TypeDef data;
 
