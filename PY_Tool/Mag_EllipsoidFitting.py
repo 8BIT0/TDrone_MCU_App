@@ -93,6 +93,7 @@ print(f'remove_list {remove_list}')
 
 # trim mag data list
 if len(remove_list) != 0:
+    # delete backward
     for index in sorted(remove_list, reverse=True):
         del mag_x_org[index]
         del mag_y_org[index]
@@ -106,27 +107,11 @@ if len(mag_x)!=len(mag_y) or len(mag_y)!=len(mag_z):
     print('[ 3 sigma check Mag data size not equal ]')
     exit()
 
-mag_x_mean = np.mean(mag_x)
-mag_y_mean = np.mean(mag_y)
-mag_z_mean = np.mean(mag_z)
-
-print(f'[ Mag X Mean {mag_x_mean} ]')
-print(f'[ Mag Y Mean {mag_y_mean} ]')
-print(f'[ Mag Z Mean {mag_z_mean} ]')
-
-if mag_x_mean == np.nan or mag_y_mean == np.nan or mag_z_mean == np.nan:
-    print('[ mag data mean is NaN ]')
-    exit()
-
 data_size = len(mag_x)
-
-x = mag_x - mag_x_mean
-y = mag_y - mag_y_mean
-z = mag_z - mag_z_mean
 
 # a1x^2 + a2y^2 + a3z^2 + a4xy + a5xz + a6yz + a7x + a8y + a9z = 1
 # x^2, y^2, z^2, xy, xz, yz, x, y, z
-D = np.array([(x[i]**2, y[i]**2, z[i]**2, x[i]*y[i], x[i]*z[i], y[i]*z[i], x[i], y[i], z[i]) for i in range(data_size)])
+D = np.array([(mag_x[i]**2, mag_y[i]**2, mag_z[i]**2, mag_x[i]*mag_y[i], mag_x[i]*mag_z[i], mag_y[i]*mag_z[i], mag_x[i], mag_y[i], mag_z[i]) for i in range(data_size)])
 
 # Least Squares
 # LS = (D.T * D)^-1 * D.T * I(unit matrix)
