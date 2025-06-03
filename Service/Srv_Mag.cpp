@@ -25,7 +25,7 @@ typedef struct
     Storage_ItemSearchOut_TypeDef SearchOut;
 
     Matrix<float, Mag_Axis_Sum, Mag_Axis_Sum> SoftIron_Matrix;
-    Matrix<float, 1, Mag_Axis_Sum> Center;
+    Matrix<float, Mag_Axis_Sum, 1> Center;
 
     void *dev_obj;
     bool (*dev_sample)(void *dev_obj);
@@ -97,7 +97,7 @@ static bool SrvMag_Init(void)
 
     /* set default soft iron fitting matrix */
     Monitor.SoftIron_Matrix.setIdentity(Mag_Axis_Sum, Mag_Axis_Sum);
-    Monitor.Center.setZero(1, Mag_Axis_Sum);
+    Monitor.Center.setZero(Mag_Axis_Sum, 1);
 
     for (uint8_t r = Mag_Axis_X; r < Mag_Axis_Sum; r ++)
     {
@@ -167,6 +167,7 @@ static bool SrvMag_Sample(void)
         return false;
 
     /* sample and get data */
+    /* sample unit: μT */
     if (!Monitor.dev_sample(Monitor.dev_obj) || \
         !Monitor.dev_get(Monitor.dev_obj, &dev_mag_data))
         return false;
@@ -186,11 +187,31 @@ static bool SrvMag_Sample(void)
 
 static void SrvMag_EllipsoidFitting_Comput(float *p_mag_in, float *p_mag_out)
 {
+    Matrix<float, Mag_Axis_Sum, 1> raw_mag;
+    Matrix<float, Mag_Axis_Sum, 1> calib_mag;
+    uint8_t i = Mag_Axis_X;
+
     if (!Monitor.init_state || (p_mag_in == NULL) || (p_mag_out == NULL))
     {
-        memcpy(p_mag_out, p_mag_in, sizeof(float) * Mag_Axis_Sum);
+        if (p_mag_in && p_mag_out)
+            memcpy(p_mag_out, p_mag_in, sizeof(float) * Mag_Axis_Sum);
         return;
     }
+
+    raw_mag << p_mag_in[Mag_Axis_X], p_mag_in[Mag_Axis_Y], p_mag_in[Mag_Axis_Z];
+    calib_mag << 0.0f, 0.0f, 0.0f;
+
+    /* Mag = SoftIronFixMatrix * (raw_mag - center) */
+    calib_mag = Monitor.SoftIron_Matrix * (raw_mag - Monitor.Center);
+
+    for (i = Mag_Axis_X; i < Mag_Axis_Sum; i ++)
+    {
+        p_mag_out[i] = calib_mag[i];
+    }
+
+    /* convert unit to Gauss */
+
+    /* smooth window filter */
 }
 
 static bool SrvMag_GetData(SrvMag_Data_TypeDef *p_data)
