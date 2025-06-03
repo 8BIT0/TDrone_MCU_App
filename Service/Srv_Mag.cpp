@@ -5,6 +5,9 @@
 #include "error_log.h"
 #include "HW_Def.h"
 
+#define MagCalibMatrix_Class    Para_User
+#define MagCalibMatrix_Name     "MagCalib"
+
 using namespace std;
 using namespace Eigen;
 
@@ -18,6 +21,8 @@ typedef struct
 {
     bool init_state;
     SrvMag_Data_TypeDef data;
+
+    Storage_ItemSearchOut_TypeDef SearchOut;
 
     Matrix<float, Mag_Axis_Sum, Mag_Axis_Sum> SoftIron_Matrix;
     Matrix<float, 1, Mag_Axis_Sum> Center;
@@ -84,6 +89,7 @@ static bool SrvMag_BusInit(void)
 static bool SrvMag_Init(void)
 {
     Monitor.init_state = false;
+    SrvMag_CalibMatrix_TypeDef CalibPara;
 
     /* bus init */
     if (!SrvMag_BusInit())
@@ -93,7 +99,36 @@ static bool SrvMag_Init(void)
     Monitor.SoftIron_Matrix.setIdentity(Mag_Axis_Sum, Mag_Axis_Sum);
     Monitor.Center.setZero(1, Mag_Axis_Sum);
 
+    for (uint8_t r = Mag_Axis_X; r < Mag_Axis_Sum; r ++)
+    {
+        CalibPara.C[r] = Monitor.Center[r];
+        for (uint8_t c = Mag_Axis_X; c < Mag_Axis_Sum; c ++)
+            CalibPara.W[r][c] = Monitor.SoftIron_Matrix(r, c);
+    }
+
     /* load ellipsoid fitting parameter */
+    memset(&Monitor.SearchOut, 0, sizeof(Storage_ItemSearchOut_TypeDef));
+    Monitor.SearchOut = Storage.search(MagCalibMatrix_Class, MagCalibMatrix_Name);
+    if (Monitor.SearchOut.item_addr == 0)
+    {
+        /* create storage item */
+        Storage.create(MagCalibMatrix_Class, MagCalibMatrix_Name, (uint8_t *)&CalibPara, sizeof(SrvMag_CalibMatrix_TypeDef));
+    }
+    else
+    {
+        uint16_t size = 0;
+        Storage.get(MagCalibMatrix_Class, Monitor.SearchOut.item, (uint8_t *)&CalibPara, &size);
+        if (size == sizeof(SrvMag_CalibMatrix_TypeDef))
+        {
+            /* read out valid */
+            for (uint8_t r = Mag_Axis_X; r < Mag_Axis_Sum; r ++)
+            {
+                Monitor.Center[r] = CalibPara.C[r];
+                for (uint8_t c = Mag_Axis_X; c < Mag_Axis_Sum; c ++)
+                    Monitor.SoftIron_Matrix(r, c) = CalibPara.W[r][c];
+            }
+        }
+    }
 
     /* device init */
     memset(&IST8310Obj, 0, sizeof(DevIST8310Obj_TypeDef));
