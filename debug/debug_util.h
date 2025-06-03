@@ -12,11 +12,14 @@ extern "C" {
 #include "Bsp_GPIO.h"
 #include "Bsp_Uart.h"
 
-void assert(bool state);
-
 #pragma pack(1)
 typedef BspGPIO_Obj_TypeDef DebugPinObj_TypeDef;
 #pragma pack()
+
+inline void debug_assert(bool state)
+{
+    while (state);
+}
 
 typedef struct
 {

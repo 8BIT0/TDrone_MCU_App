@@ -1,5 +1,6 @@
 #include "Srv_Mag.h"
 #include "Srv_OsCommon.h"
+#include <Eigen>
 #include "Storage.h"
 #include "error_log.h"
 #include "HW_Def.h"
@@ -44,6 +45,9 @@ SrvMag_TypeDef SrvMag = {
     .sample = SrvMag_Sample,
     .get    = SrvMag_GetData,
 };
+
+using namespace std;
+using namespace Eigen;
 
 static bool SrvMag_BusInit(void)
 {

@@ -106,9 +106,7 @@ static IRQn_Type BspGPIO_GetExti_IRQnID(BspGPIO_Obj_TypeDef IO_Obj)
     case GPIO_PIN_15:
         return EXTI15_10_IRQn;
 
-    default:
-        assert(true);
-        break;
+    default: debug_assert(true); break;
     }
 
     return 0;

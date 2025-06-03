@@ -27,11 +27,6 @@ static bool DebugPin_Ctl(DebugPinObj_TypeDef debug_pin, bool state)
     return true;
 }
 
-void assert(bool state)
-{
-    while (state);
-}
-
 static void Debug_PrintOut(DebugPrintObj_TypeDef *Obj, uint8_t *p_data, uint16_t len)
 {
     if (p_data && len)
