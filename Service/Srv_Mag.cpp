@@ -1,6 +1,7 @@
 #include "Srv_Mag.h"
 #include "Srv_OsCommon.h"
 #include <Eigen>
+#include "filter.h"
 #include "Storage.h"
 #include "error_log.h"
 #include "HW_Def.h"
@@ -206,10 +207,9 @@ static void SrvMag_EllipsoidFitting_Comput(float *p_mag_in, float *p_mag_out)
 
     for (i = Mag_Axis_X; i < Mag_Axis_Sum; i ++)
     {
-        p_mag_out[i] = calib_mag[i];
+        /* convert unit from μT to Gauss */
+        p_mag_out[i] = calib_mag[i] / 100.0f;
     }
-
-    /* convert unit to Gauss */
 
     /* smooth window filter */
 }

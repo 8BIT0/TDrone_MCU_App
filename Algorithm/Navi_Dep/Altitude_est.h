@@ -1,5 +1,5 @@
-#ifndef __ALT_EST_H
-#define __ALT_EST_H
+#ifndef __ALTITUDE_EST_H
+#define __ALTITUDE_EST_H
 
 #include <stdint.h>
 #include <stdbool.h>

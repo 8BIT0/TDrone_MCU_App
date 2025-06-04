@@ -7,7 +7,8 @@
 #include "Srv_Mag.h"
 #include "DataPipe.h"
 #include "MadgwickAHRS.h"
-#include "Alt_est.h"
+#include "Altitude_est.h"
+#include "Attitude_est.h"
 #include "math_util.h"
 #include <Eigen>
 #include <stdio.h>

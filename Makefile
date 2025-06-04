@@ -36,8 +36,9 @@ BUILD_DIR = build
 # C++ source
 CPP_SOURCES = \
 Task/Task_Navi.cpp \
-Service/Srv_Mag.cpp
-# Algorithm/Navi_Dep/Alt_est.cpp
+Service/Srv_Mag.cpp \
+Algorithm/Navi_Dep/Attitude_est.cpp
+# Algorithm/Navi_Dep/Altitude_est.cpp
 
 # C sources
 C_SOURCES = \

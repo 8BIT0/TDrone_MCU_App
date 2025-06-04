@@ -356,6 +356,8 @@ static bool DevBMP280_Set_NormalMode(DevBMP280Obj_TypeDef *obj)
 
     if (mode == read_mode)
         return true;
+
+    return false;
 }
 
 static bool DevBMP280_Calibration(DevBMP280Obj_TypeDef *obj)
