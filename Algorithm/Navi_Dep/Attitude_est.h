@@ -23,7 +23,7 @@ typedef struct {
 } AttitudeData_TypeDef;
 
 typedef struct {
-    float delta_T;
+    float delta_T;                  /* unit: s */
     Eigen::Matrix<float, 4, 1> q;
 } AttitudeObj_TypeDef;
 
