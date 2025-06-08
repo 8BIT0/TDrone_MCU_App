@@ -34,7 +34,7 @@ typedef struct {
     Eigen::Matrix<float, 4, 4> R;       /* measure covariance matrix (const) */
 } AttitudeObj_TypeDef;
 
-bool AttitudeEstimate_Init(AttitudeObj_TypeDef *obj, uint16_t period);
+bool AttitudeEstimate_Init(AttitudeObj_TypeDef *obj, uint16_t period, float Q_init[7][7], float R_init[4][4], float P_init[7][7]);
 AttitudeData_TypeDef AttitudeEstimate_Update(AttitudeObj_TypeDef *obj, float gyr_x, float gyr_y, float gyr_z, float acc_x, float acc_y, float acc_z, float mag_x, float mag_y, float mag_z);
 
 #endif
