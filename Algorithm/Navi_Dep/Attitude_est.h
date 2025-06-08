@@ -23,8 +23,15 @@ typedef struct {
 } AttitudeData_TypeDef;
 
 typedef struct {
-    float delta_T;                  /* unit: s */
+    float delta_T;                      /* unit: s */
     Eigen::Matrix<float, 4, 1> q;
+    Eigen::Matrix<float, 7, 7> phi;
+    Eigen::Matrix<float, 3, 1> gyr_b;   /* gyro bias */
+    Eigen::Matrix<float, 4, 7> H;       /* measure jacobi matrix */
+    Eigen::Matrix<float, 7, 7> Q;       /* process noise matrix */
+    Eigen::Matrix<float, 7, 7> P;
+    Eigen::Matrix<float, 7, 4> K;
+    Eigen::Matrix<float, 4, 4> R;       /* measure covariance matrix (const) */
 } AttitudeObj_TypeDef;
 
 bool AttitudeEstimate_Init(AttitudeObj_TypeDef *obj, uint16_t period);
