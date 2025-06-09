@@ -64,7 +64,7 @@ AttitudeData_TypeDef AttitudeEstimate_Update(AttitudeObj_TypeDef *obj, float gyr
     /* calculate mag heading */
 
     AttitudeEstimate_QuaternionUpdate(obj, gyr_x, gyr_y, gyr_z);
-    AttitudeEstimate_MagHeading_Update(obj, mag_x, mag_y, mag_z);;
+    AttitudeEstimate_MagHeading_Update(obj, mag_x, mag_y, mag_z);
     AttitudeEstimate_StateEquation_Update(obj, gyr_x, gyr_y, gyr_z);
     AttitudeEstimate_MeasureEquation_Update(obj, acc_x, acc_y, acc_z, mag_heading);
     AttitudeEstimate_BiasCovarianceMatrix_Update(obj);
@@ -91,6 +91,9 @@ static void AttitudeEstimate_QuaternionUpdate(AttitudeObj_TypeDef *obj, float gy
     /* Runge Kutta */
     /* q(k) = {I + T/2[Ω(k - 1)]} * q(k -1) */
     obj->q = (I + (obj->delta_T / 2.0f) * Omega) * q_k_1;
+
+    /* update state matrix */
+    obj->X << obj->q[0], obj->q[1], obj->q[2], obj->q[3], obj->gyr_b[0], obj->gyr_b[1], obj->gyr_b[2];
 }
 
 static void AttitudeEstimate_MagHeading_Update(AttitudeObj_TypeDef *obj, float mag_x, float mag_y, float mag_z)
