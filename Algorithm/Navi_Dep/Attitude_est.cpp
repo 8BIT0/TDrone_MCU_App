@@ -6,6 +6,7 @@ using namespace Eigen;
 
 /* internal function */
 static void AttitudeEstimate_QuaternionUpdate(AttitudeObj_TypeDef *obj, float gyr_x, float gyr_y, float gyr_z);
+static void AttitudeEstimate_MagHeading_Update(AttitudeObj_TypeDef *obj, float mag_x, float mag_y, float mag_z);
 static void AttitudeEstimate_StateEquation_Update(AttitudeObj_TypeDef *obj, float gyr_x, float gyr_y, float gyr_z);
 static void AttitudeEstimate_MeasureEquation_Update(AttitudeObj_TypeDef *obj, float a_x, float a_y, float a_z, float mag_heading);
 static void AttitudeEstimate_BiasCovarianceMatrix_Update(AttitudeObj_TypeDef *obj);
@@ -63,6 +64,7 @@ AttitudeData_TypeDef AttitudeEstimate_Update(AttitudeObj_TypeDef *obj, float gyr
     /* calculate mag heading */
 
     AttitudeEstimate_QuaternionUpdate(obj, gyr_x, gyr_y, gyr_z);
+    AttitudeEstimate_MagHeading_Update(obj, mag_x, mag_y, mag_z);;
     AttitudeEstimate_StateEquation_Update(obj, gyr_x, gyr_y, gyr_z);
     AttitudeEstimate_MeasureEquation_Update(obj, acc_x, acc_y, acc_z, mag_heading);
     AttitudeEstimate_BiasCovarianceMatrix_Update(obj);
@@ -89,8 +91,33 @@ static void AttitudeEstimate_QuaternionUpdate(AttitudeObj_TypeDef *obj, float gy
     /* Runge Kutta */
     /* q(k) = {I + T/2[Ω(k - 1)]} * q(k -1) */
     obj->q = (I + (obj->delta_T / 2.0f) * Omega) * q_k_1;
+}
 
-    /* calculate mag heading */
+static void AttitudeEstimate_MagHeading_Update(AttitudeObj_TypeDef *obj, float mag_x, float mag_y, float mag_z)
+{
+    float temp_pitch = 0.0f;    /* θ */
+    float temp_roll = 0.0f;     /* φ */
+    float M_xn = 0.0f;
+    float M_yn = 0.0f;
+
+    if (obj == NULL)
+        return;
+
+    temp_roll = 2 * (obj->q[1] * obj->q[3] - obj->q[0] * obj->q[2]);
+    temp_roll /= pow(obj->q[0], 2) - pow(obj->q[1], 2) - pow(obj->q[2], 2) + pow(obj->q[3], 2);
+    temp_roll = -atanf(temp_roll);
+
+    temp_pitch = 2 * (obj->q[2]* obj->q[3] + obj->q[0] * obj->q[1]);
+    temp_pitch = asinf(temp_pitch);
+
+    /* Mag_xn = ｍ_x * cos(θ) ＋ m_y * sin(φ) * sin(θ) － m_z * cos(φ) * sin(θ) */
+    M_xn = mag_x * cosf(temp_pitch) + mag_y * sinf(temp_roll) * sinf(temp_pitch) - mag_z * cosf(temp_roll) * sinf(temp_pitch);
+
+    /* Mag_yn = ｍ_y * cos(φ) ＋ ｍ_z * sin(φ) */
+    M_yn = mag_y * cosf(temp_roll) + mag_z * sinf(temp_roll);
+
+    /* ψ＝ arctan(m_yn / m_xb) */
+    obj->mag_heading = atanf(M_yn / M_xn);    
 }
 
 /* gyro unit: rad/s */
