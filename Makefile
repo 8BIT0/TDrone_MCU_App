@@ -47,9 +47,6 @@ Task/Task_Manager.c \
 Algorithm/Navi_Dep/MadgwickAHRS.c \
 Algorithm/Filter_Dep/filter.c \
 Algorithm/Filter_Dep/filter_param.c \
-Algorithm/Control_Dep/pid.c \
-Algorithm/Control_Dep/Attitude/Att_Casecade_PID.c \
-Algorithm/Control_Dep/controller.c \
 debug/debug_util.c \
 debug/trace_analysiser.c \
 Task/Task_Telemetry.c \
@@ -153,6 +150,9 @@ HW_Lib/STM32H7/HAL_Lib/STM32H7xx_HAL_Driver/Src/stm32h7xx_ll_usb.c \
 HW_Lib/STM32H7/PinPort_Def/Neure/HW_Def.c
 # Task/Task_BlackBox.c \
 # Task/Task_Control.c \
+# Algorithm/Control_Dep/pid.c \
+# Algorithm/Control_Dep/Attitude/Att_Casecade_PID.c \
+# Algorithm/Control_Dep/controller.c 
 
 # ASM sources
 ASM_SOURCES =  \

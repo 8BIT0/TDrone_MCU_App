@@ -89,12 +89,14 @@ static void AttitudeEstimate_QuaternionUpdate(AttitudeObj_TypeDef *obj, float gy
     /* Runge Kutta */
     /* q(k) = {I + T/2[Ω(k - 1)]} * q(k -1) */
     obj->q = (I + (obj->delta_T / 2.0f) * Omega) * q_k_1;
+
+    /* update X */
+    obj->X << obj->q[0], obj->q[1], obj->q[2], obj->q[3], obj->gyr_b[0], obj->gyr_b[1], obj->gyr_b[2];
 }
 
 /* gyro unit: rad/s */
 static void AttitudeEstimate_StateEquation_Update(AttitudeObj_TypeDef *obj, float g_x, float g_y, float g_z)
 {
-    Matrix<float, 7, 1> X;
     Matrix<float, 3, 1> gyr_tmp;
     Matrix<float, 3, 1> gyr_raw;
     Matrix<float, 7, 7> P_tmp;

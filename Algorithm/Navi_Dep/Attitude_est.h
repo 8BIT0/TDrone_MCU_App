@@ -29,6 +29,7 @@ typedef struct {
     Eigen::Matrix<float, 3, 1> gyr_b;   /* gyro bias */
     Eigen::Matrix<float, 4, 7> H;       /* measure jacobi matrix */
     Eigen::Matrix<float, 7, 7> Q;       /* process noise matrix */
+    Eigen::Matrix<float, 7, 1> X;       /* state estimate matrix */
     Eigen::Matrix<float, 7, 7> P;
     Eigen::Matrix<float, 7, 4> K;
     Eigen::Matrix<float, 4, 4> R;       /* measure covariance matrix (const) */
