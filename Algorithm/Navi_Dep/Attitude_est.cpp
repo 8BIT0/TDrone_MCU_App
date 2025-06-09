@@ -8,7 +8,7 @@ using namespace Eigen;
 static void AttitudeEstimate_QuaternionUpdate(AttitudeObj_TypeDef *obj, float gyr_x, float gyr_y, float gyr_z);
 static void AttitudeEstimate_MagHeading_Update(AttitudeObj_TypeDef *obj, float mag_x, float mag_y, float mag_z);
 static void AttitudeEstimate_StateEquation_Update(AttitudeObj_TypeDef *obj, float gyr_x, float gyr_y, float gyr_z);
-static void AttitudeEstimate_MeasureEquation_Update(AttitudeObj_TypeDef *obj, float a_x, float a_y, float a_z, float mag_heading);
+static void AttitudeEstimate_MeasureEquation_Update(AttitudeObj_TypeDef *obj, float a_x, float a_y, float a_z);
 static void AttitudeEstimate_BiasCovarianceMatrix_Update(AttitudeObj_TypeDef *obj);
 
 bool AttitudeEstimate_Init(AttitudeObj_TypeDef *obj, uint16_t period, float Q_init[7][7], float R_init[4][4], float P_init[7][7])
@@ -56,7 +56,6 @@ bool AttitudeEstimate_Init(AttitudeObj_TypeDef *obj, uint16_t period, float Q_in
  */
 AttitudeData_TypeDef AttitudeEstimate_Update(AttitudeObj_TypeDef *obj, float gyr_x, float gyr_y, float gyr_z, float acc_x, float acc_y, float acc_z, float mag_x, float mag_y, float mag_z)
 {
-    float mag_heading = 0.0f;
     AttitudeData_TypeDef tmp;
 
     memset(&tmp, 0, sizeof(AttitudeData_TypeDef));
@@ -66,7 +65,7 @@ AttitudeData_TypeDef AttitudeEstimate_Update(AttitudeObj_TypeDef *obj, float gyr
     AttitudeEstimate_QuaternionUpdate(obj, gyr_x, gyr_y, gyr_z);
     AttitudeEstimate_MagHeading_Update(obj, mag_x, mag_y, mag_z);
     AttitudeEstimate_StateEquation_Update(obj, gyr_x, gyr_y, gyr_z);
-    AttitudeEstimate_MeasureEquation_Update(obj, acc_x, acc_y, acc_z, mag_heading);
+    AttitudeEstimate_MeasureEquation_Update(obj, acc_x, acc_y, acc_z);
     AttitudeEstimate_BiasCovarianceMatrix_Update(obj);
 
     return tmp;
@@ -174,7 +173,7 @@ static void AttitudeEstimate_StateEquation_Update(AttitudeObj_TypeDef *obj, floa
 }
 
 /* acc unit: g */
-static void AttitudeEstimate_MeasureEquation_Update(AttitudeObj_TypeDef *obj, float a_x, float a_y, float a_z, float mag_heading)
+static void AttitudeEstimate_MeasureEquation_Update(AttitudeObj_TypeDef *obj, float a_x, float a_y, float a_z)
 {
     Matrix<float, 4, 1> z;
     Matrix<float, 4, 4> tmp;
@@ -220,10 +219,10 @@ static void AttitudeEstimate_MeasureEquation_Update(AttitudeObj_TypeDef *obj, fl
     obj->K = obj->P * obj->H.transpose() * tmp.inverse();
 
     /* get measurement matrix Z */
-    obj->Z << a_x, a_y, a_z, mag_heading;
+    obj->Z << a_x, a_y, a_z, obj->mag_heading;
 
     /* get estimate value */
-    /* x^(k) = x^(k, k - 1) + K(k)(z(k) - h(x^(k, k - 1), k)) */
+    /* x^(k) = x(k, k - 1) + K(k)(z(k) - h(x^(k, k - 1), k)) */
 }
 
 static void AttitudeEstimate_BiasCovarianceMatrix_Update(AttitudeObj_TypeDef *obj)
