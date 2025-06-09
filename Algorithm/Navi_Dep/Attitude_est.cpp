@@ -90,8 +90,7 @@ static void AttitudeEstimate_QuaternionUpdate(AttitudeObj_TypeDef *obj, float gy
     /* q(k) = {I + T/2[Ω(k - 1)]} * q(k -1) */
     obj->q = (I + (obj->delta_T / 2.0f) * Omega) * q_k_1;
 
-    /* update X */
-    obj->X << obj->q[0], obj->q[1], obj->q[2], obj->q[3], obj->gyr_b[0], obj->gyr_b[1], obj->gyr_b[2];
+    /* calculate mag heading */
 }
 
 /* gyro unit: rad/s */
@@ -135,6 +134,9 @@ static void AttitudeEstimate_StateEquation_Update(AttitudeObj_TypeDef *obj, floa
                 0, 0, 0, 0, 1, 0, 0, \
                 0, 0, 0, 0, 0, 1, 0, \
                 0, 0, 0, 0, 0, 0, 1;
+
+    /* update X state matrix */
+    obj->X << obj->q[0], obj->q[1], obj->q[2], obj->q[3], obj->gyr_b[0], obj->gyr_b[1], obj->gyr_b[2];
 
     /* update P matrix */
     P_tmp = obj->phi * obj->P * obj->phi.transpose() + obj->Q;
@@ -186,6 +188,9 @@ static void AttitudeEstimate_MeasureEquation_Update(AttitudeObj_TypeDef *obj, fl
 
     tmp = obj->H * obj->P * obj->H.transpose() + obj->R;
     obj->K = obj->P * obj->H.transpose() * tmp.inverse();
+
+    /* get measurement matrix Z */
+    obj->Z << a_x, a_y, a_z, mag_heading;
 
     /* get estimate value */
     /* x^(k) = x^(k, k - 1) + K(k)(z(k) - h(x^(k, k - 1), k)) */
